@@ -1,0 +1,131 @@
+﻿@model Property
+@{
+    ViewData["Title"] = "Új ingatlan hirdetés feladása";
+}
+
+<h1>Új ingatlan hirdetés</h1>
+
+<!-- Visszalépés a listához -->
+<p>
+    <a asp-action="Index" class="btn btn-secondary">Vissza a listához</a>
+</p>
+
+<!--
+    Az űrlap POST kérést küld a PropertyController Create (HttpPost) akciójára.
+    A model binder automatikusan kitölti a Property paramétert a form mezőkből.
+-->
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @* Validációs összegzés (ha ModelState-ben hiba van) *@
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+        <!-- Kategória legördülő -->
+        <div class="col-md-4 mb-3">
+            <label asp-for="Category" class="form-label"></label>
+            <select asp-for="Category"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<PropertyCategory>()"></select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+        </div>
+
+        <!-- Hirdetés típusa: eladó / bérlés -->
+        <div class="col-md-4 mb-3">
+            <label asp-for="ListingType" class="form-label"></label>
+            <select asp-for="ListingType"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<ListingType>()"></select>
+            <span asp-validation-for="ListingType" class="text-danger"></span>
+        </div>
+
+        <!-- Ingatlan állapota -->
+        <div class="col-md-4 mb-3">
+            <label asp-for="Allapot" class="form-label"></label>
+            <select asp-for="Allapot"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<PropertyCondition>()"></select>
+            <span asp-validation-for="Allapot" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <!-- Cím mező -->
+        <label asp-for="Cim" class="form-label"></label>
+        <input asp-for="Cim" class="form-control" />
+        <span asp-validation-for="Cim" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <!-- Alapterület -->
+        <div class="col-md-3 mb-3">
+            <label asp-for="Alapterulet" class="form-label"></label>
+            <input asp-for="Alapterulet" class="form-control" />
+            <span asp-validation-for="Alapterulet" class="text-danger"></span>
+        </div>
+
+        <!-- Szobaszám -->
+        <div class="col-md-3 mb-3">
+            <label asp-for="Szobaszam" class="form-label"></label>
+            <input asp-for="Szobaszam" class="form-control" />
+            <span asp-validation-for="Szobaszam" class="text-danger"></span>
+        </div>
+
+        <!-- Ár -->
+        <div class="col-md-3 mb-3">
+            <label asp-for="Ar" class="form-label"></label>
+            <input asp-for="Ar" class="form-control" />
+            <span asp-validation-for="Ar" class="text-danger"></span>
+        </div>
+
+        <!-- Emelet (opcionális) -->
+        <div class="col-md-3 mb-3">
+            <label asp-for="Emelet" class="form-label"></label>
+            <input asp-for="Emelet" class="form-control" />
+            <span asp-validation-for="Emelet" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Építés éve (opcionális) -->
+        <div class="col-md-4 mb-3">
+            <label asp-for="EpitesEve" class="form-label"></label>
+            <input asp-for="EpitesEve" class="form-control" />
+            <span asp-validation-for="EpitesEve" class="text-danger"></span>
+        </div>
+
+        <!-- Fűtés típusa -->
+        <div class="col-md-4 mb-3">
+            <label asp-for="Futestipus" class="form-label"></label>
+            <select asp-for="Futestipus"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<HeatingType>()"></select>
+            <span asp-validation-for="Futestipus" class="text-danger"></span>
+        </div>
+    </div>
+
+    <!-- Leírás (többsoros szövegmező) -->
+    <div class="mb-3">
+        <label asp-for="Leiras" class="form-label"></label>
+        <textarea asp-for="Leiras" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Leiras" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Képek feltöltése (max. 10 db)</label>
+        <!--
+            name="kepek" -> ennek a névnek kell egyeznie a POST akció paraméter nevével (List<IFormFile> kepek)
+            multiple -> több fájl egyszerre kijelölhető
+        -->
+        <input type="file" name="kepek" multiple class="form-control" />
+        <div class="form-text">Több képet is kiválaszthatsz egyszerre (Ctrl vagy Shift használatával).</div>
+    </div>
+
+
+    <!-- Mentés gomb -->
+    <button type="submit" class="btn btn-primary">Hirdetés mentése</button>
+</form>
+
+@section Scripts {
+    <!-- Client-side validációhoz szükséges szkriptek (jQuery Validation) -->
+    <partial name="_ValidationScriptsPartial" />
+}

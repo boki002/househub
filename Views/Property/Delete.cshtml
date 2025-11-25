@@ -1,0 +1,31 @@
+﻿@model Property
+@{
+    ViewData["Title"] = "Ingatlan törlése";
+}
+
+<h1>Ingatlan törlése</h1>
+
+<p class="text-danger">
+    Biztosan törölni szeretnéd ezt a hirdetést? A művelet nem vonható vissza.
+</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h3 class="card-title">@Model.Cim</h3>
+        <p class="card-text">
+            <strong>Kategória:</strong> @Model.Category<br />
+            <strong>Típus:</strong> @Model.ListingType<br />
+            <strong>Ár:</strong> @string.Format("{0:N0}", Model.Ar) Ft<br />
+            <strong>Alapterület:</strong> @Model.Alapterulet m²<br />
+            <strong>Szobaszám:</strong> @Model.Szobaszam<br />
+        </p>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    @* Id rejtett mezőként *@
+    <input type="hidden" asp-for="Id" />
+
+    <button type="submit" class="btn btn-danger">Igen, törlöm</button>
+    <a asp-action="Index" class="btn btn-secondary">Mégsem</a>
+</form>

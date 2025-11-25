@@ -1,0 +1,71 @@
+﻿@model Property
+@{
+    ViewData["Title"] = "Ingatlan részletei";
+}
+
+<h1>Ingatlan részletei</h1>
+
+<p>
+    <a asp-action="Index" class="btn btn-secondary">Vissza a listához</a>
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <h3 class="card-title">@Model.Cim</h3>
+        <h5 class="card-subtitle mb-2 text-muted">
+            @Model.Category – @Model.ListingType
+        </h5>
+
+        <p class="card-text">
+            <strong>Alapterület:</strong> @Model.Alapterulet m²<br />
+            <strong>Szobaszám:</strong> @Model.Szobaszam<br />
+            <strong>Ár:</strong> @string.Format("{0:N0}", Model.Ar) Ft<br />
+            <strong>Állapot:</strong> @Model.Allapot<br />
+            <strong>Emelet:</strong> @(Model.Emelet?.ToString() ?? "n/a")<br />
+            <strong>Építés éve:</strong> @(Model.EpitesEve?.ToString() ?? "n/a")<br />
+            <strong>Fűtés típusa:</strong> @Model.Futestipus<br />
+            <strong>Létrehozva:</strong> @Model.Letrehozva.ToLocalTime().ToString("yyyy.MM.dd HH:mm")<br />
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Leiras))
+        {
+            <h5>Leírás</h5>
+            <p>@Model.Leiras</p>
+        }
+
+        <!-- Tulajdonos adatai (ha be van tölteve a navigációs property) -->
+        @if (Model.TulajdonosUser != null)
+        {
+            <h5>Hirdető</h5>
+            <p>
+                @Model.TulajdonosUser.UserName<br />
+                @Model.TulajdonosUser.Email
+            </p>
+        }
+    </div>
+
+    @if (Model.Kepek != null && Model.Kepek.Any())
+    {
+        <h5>Képek</h5>
+        <div class="row">
+            @foreach (var img in Model.Kepek)
+            {
+                <div class="col-md-3 mb-3">
+                    <!--
+                        Az ImagePath relatív elérési útvonal (pl. /images/properties/5/xxxx.jpg),
+                        ezért közvetlenül használható az <img> src attribútumában.
+                    -->
+                    <img src="@img.ImagePath"
+                         class="img-fluid img-thumbnail"
+                         alt="Ingatlan kép" />
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+<p class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Törlés</a>
+</p>

@@ -1,0 +1,118 @@
+﻿@model Property
+@{
+    ViewData["Title"] = "Ingatlan hirdetés szerkesztése";
+}
+
+<h1>Ingatlan hirdetés szerkesztése</h1>
+
+<p>
+    <a asp-action="Index" class="btn btn-secondary">Vissza a listához</a>
+</p>
+
+<!--
+    Az Edit űrlap gyakorlatilag ugyanaz, mint a Create,
+    csak a Property objektum már létező értékekkel érkezik,
+    és az Id mezőt rejtve (hidden) is elküldjük.
+-->
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @* Az Id mezőt rejtett mezőként elküldjük, hogy a szerver oldalon tudjuk melyik entitást módosítani *@
+    <input type="hidden" asp-for="Id" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Category" class="form-label"></label>
+            <select asp-for="Category"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<PropertyCategory>()"></select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="ListingType" class="form-label"></label>
+            <select asp-for="ListingType"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<ListingType>()"></select>
+            <span asp-validation-for="ListingType" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Allapot" class="form-label"></label>
+            <select asp-for="Allapot"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<PropertyCondition>()"></select>
+            <span asp-validation-for="Allapot" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Cim" class="form-label"></label>
+        <input asp-for="Cim" class="form-control" />
+        <span asp-validation-for="Cim" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <label asp-for="Alapterulet" class="form-label"></label>
+            <input asp-for="Alapterulet" class="form-control" />
+            <span asp-validation-for="Alapterulet" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label asp-for="Szobaszam" class="form-label"></label>
+            <input asp-for="Szobaszam" class="form-control" />
+            <span asp-validation-for="Szobaszam" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label asp-for="Ar" class="form-label"></label>
+            <input asp-for="Ar" class="form-control" />
+            <span asp-validation-for="Ar" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label asp-for="Emelet" class="form-label"></label>
+            <input asp-for="Emelet" class="form-control" />
+            <span asp-validation-for="Emelet" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="EpitesEve" class="form-label"></label>
+            <input asp-for="EpitesEve" class="form-control" />
+            <span asp-validation-for="EpitesEve" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Futestipus" class="form-label"></label>
+            <select asp-for="Futestipus"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<HeatingType>()"></select>
+            <span asp-validation-for="Futestipus" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Leiras" class="form-label"></label>
+        <textarea asp-for="Leiras" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Leiras" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Új képek hozzáadása (max. 10 db összesen)</label>
+        <input type="file" name="kepek" multiple class="form-control" />
+        <div class="form-text">
+            Az itt feltöltött képek hozzáadódnak a meglévő képekhez, amíg a hirdetéshez tartozó képek száma el nem éri a 10-et.
+        </div>
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Változások mentése</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

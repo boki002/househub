@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Property>
+
+@{
+    ViewData["Title"] = "Főoldal";
+}
+
+<h1 class="mb-4">Legfrissebb ingatlanok</h1>
+
+@if (!Model.Any())
+{
+    <p>Nincs még hirdetés az adatbázisban.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var p in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+
+                    @* Előnézeti kép (ha van) *@
+                    @if (p.Kepek != null && p.Kepek.Any())
+                    {
+                        <img src="@p.Kepek.First().ImagePath"
+                             class="card-img-top"
+                             alt="Ingatlan kép"
+                             style="height: 200px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <img src="/images/no-image.png"
+                             class="card-img-top"
+                             alt="Nincs kép"
+                             style="height: 200px; object-fit: cover;" />
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title">@p.Cim</h5>
+
+                        <p class="card-text">
+                            <strong>Kategória:</strong> @p.Category<br />
+                            <strong>Ár:</strong> @string.Format("{0:N0}", p.Ar) Ft<br />
+                            <strong>Alapterület:</strong> @p.Alapterulet m²<br />
+                            <strong>Szobaszám:</strong> @p.Szobaszam
+                        </p>
+
+                        <a asp-controller="Property"
+                           asp-action="Details"
+                           asp-route-id="@p.Id"
+                           class="btn btn-primary">
+                            Részletek
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

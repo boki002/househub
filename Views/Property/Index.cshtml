@@ -1,0 +1,125 @@
+﻿@model IEnumerable<Property>
+@{
+    ViewData["Title"] = "Ingatlanok listája";
+}
+
+<h1>Ingatlanok</h1>
+
+<!--
+    Egyszerű kereső űrlap az ingatlanok szűrésére.
+    A form GET metódussal küldi a paramétereket a PropertyController Index akciójához.
+    A paraméterek nevei: keresoszo, kategoria, minAr, maxAr
+-->
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="row">
+        <!-- Keresőszó mező: címre és leírásra keres -->
+        <div class="col-md-3">
+            <label for="keresoszo" class="form-label">Keresés (cím / leírás)</label>
+            <input type="text"
+                   id="keresoszo"
+                   name="keresoszo"
+                   value="@Context.Request.Query["keresoszo"]"
+                   class="form-control" />
+        </div>
+
+        <!-- Kategória legördülő (enum PropertyCategory) -->
+        <div class="col-md-2">
+            <label for="kategoria" class="form-label">Kategória</label>
+            <select id="kategoria"
+                    name="kategoria"
+                    class="form-select"
+                    asp-items="Html.GetEnumSelectList<PropertyCategory>()">
+                <option value="">-- Mindegy --</option>
+            </select>
+        </div>
+
+        <!-- Minimális ár (Ft) -->
+        <div class="col-md-2">
+            <label for="minAr" class="form-label">Min. ár (Ft)</label>
+            <input type="number"
+                   id="minAr"
+                   name="minAr"
+                   value="@Context.Request.Query["minAr"]"
+                   class="form-control" />
+        </div>
+
+        <!-- Maximális ár (Ft) -->
+        <div class="col-md-2">
+            <label for="maxAr" class="form-label">Max. ár (Ft)</label>
+            <input type="number"
+                   id="maxAr"
+                   name="maxAr"
+                   value="@Context.Request.Query["maxAr"]"
+                   class="form-control" />
+        </div>
+
+        <!-- Keresés gomb -->
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">Keresés</button>
+            <a asp-action="Index" class="btn btn-secondary">Szűrés törlése</a>
+        </div>
+    </div>
+</form>
+
+<!-- Új hirdetés létrehozása gomb (csak bejelentkezetteknek lesz engedélyezve a szerver oldalon) -->
+<p>
+    <a asp-action="Create" class="btn btn-success">Új ingatlan hirdetés feladása</a>
+</p>
+
+<!--
+    Táblázat az ingatlan hirdetések listájához.
+    A modell: IEnumerable<Property>, azaz Property objektumok listája.
+-->
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Kategória</th>
+            <th>Cím</th>
+            <th>Alapterület (m²)</th>
+            <th>Szobaszám</th>
+            <th>Ár (Ft)</th>
+            <th>Típus</th>
+            <th>Létrehozva</th>
+            <th></th> @* Műveletek oszlop (Részletek / Szerkesztés / Törlés) *@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <!--
+                    A Category egy enum (PropertyCategory), amelyet a ToString() szépen kiír,
+                    pl. Lakás, Ház, Telek, Iroda.
+                -->
+                <td>@item.Category</td>
+
+                <!-- Ingatlan címe -->
+                <td>@item.Cim</td>
+
+                <!-- Alapterület -->
+                <td>@item.Alapterulet</td>
+
+                <!-- Szobaszám -->
+                <td>@item.Szobaszam</td>
+
+                <!-- Ár formázva, ezres tagolóval -->
+                <td>@string.Format("{0:N0}", item.Ar)</td>
+
+                <!-- ListingType enum: Elado vagy Berles -->
+                <td>@item.ListingType</td>
+
+                <!-- Létrehozás dátuma -->
+                <td>@item.Letrehozva.ToLocalTime().ToString("yyyy.MM.dd HH:mm")</td>
+
+                <!-- Műveletek oszlop -->
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
