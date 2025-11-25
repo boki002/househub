@@ -1,0 +1,46 @@
+﻿@using Homecat.Models          @* hogy lássuk a UserType enumot *@
+@{
+    ViewData["Title"] = "Felhasználó típus beállítása";
+
+    // A jelenlegi user típust a ViewData-ból vesszük ki (a controller adta át)
+    var currentType = ViewData["CurrentUserType"] as UserType? ?? UserType.Tulajdonos;
+}
+
+<h1>Felhasználó típus beállítása</h1>
+
+<p>
+    Itt választhatod ki, hogy <strong>tulajdonos</strong> vagy <strong>ingatlanos</strong> szerepben szeretnéd használni az oldalt.
+</p>
+
+<form asp-action="EditRole" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   id="radioTulaj"
+                   name="userType"
+                   value="@UserType.Tulajdonos"
+                   @(currentType == UserType.Tulajdonos ? "checked" : "") />
+            <label class="form-check-label" for="radioTulaj">
+                Tulajdonos (saját ingatlanjaidat hirdeted)
+            </label>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   id="radioIngatlanos"
+                   name="userType"
+                   value="@UserType.Ingatlanos"
+                   @(currentType == UserType.Ingatlanos ? "checked" : "") />
+            <label class="form-check-label" for="radioIngatlanos">
+                Ingatlanos (ügyfelek ingatlanjait kezeled)
+            </label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Mentés</button>
+    <a asp-controller="Property" asp-action="Index" class="btn btn-secondary">Mégsem</a>
+</form>

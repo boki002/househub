@@ -50,18 +50,33 @@
         <div class="row">
             @foreach (var img in Model.Kepek)
             {
-                <div class="col-md-3 mb-3">
-                    <!--
-                        Az ImagePath relatív elérési útvonal (pl. /images/properties/5/xxxx.jpg),
-                        ezért közvetlenül használható az <img> src attribútumában.
-                    -->
+                <div class="col-md-3 mb-3 text-center">
                     <img src="@img.ImagePath"
-                         class="img-fluid img-thumbnail"
+                         class="img-fluid img-thumbnail mb-2"
                          alt="Ingatlan kép" />
+
+                    @* Csak bejelentkezett felhasználó lássa a törlés gombot *@
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <!--
+                            Ha nagyon pontosan csak admin + tulaj lássa, az ellenőrzést
+                            a szerveren már megtettük, de itt is szűrhetünk (pl. ViewBag-ben átadva, vagy Claims alapján).
+                            Most egyszerűen csak authenticated usernek mutatjuk, a végső jogot a controller dönti el.
+                        -->
+                        <form asp-action="DeleteImage" method="post" class="d-inline">
+                            <input type="hidden" name="imageId" value="@img.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Biztosan törlöd ezt a képet?');">
+                                Kép törlése
+                            </button>
+                            @Html.AntiForgeryToken()
+                        </form>
+                    }
                 </div>
             }
         </div>
     }
+
 
 </div>
 

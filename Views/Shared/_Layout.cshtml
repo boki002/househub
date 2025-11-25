@@ -20,19 +20,28 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                     <!-- MENÜ -->
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
+                         <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Property" asp-action="Index">Ingatlanok</a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                            @* Csak bejelentkezett felhasználónak mutatjuk *@
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="UserProfile" asp-action="EditRole">
+                                        Szerepkör / felhasználó típus
+                                    </a>
+                                </li>
+                            }
+                        </ul>
 
-                        <!-- ÚJ: Ingatlanok menüpont -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Property" asp-action="Index">Ingatlanok</a>
-                        </li>
                     </ul>
 
                     <partial name="_LoginPartial" />

@@ -98,7 +98,6 @@ namespace Homecat.Models
 
         // Annak a felhasználónak az azonosítója, aki a hirdetést létrehozta
         // ASP.NET Identity User Id (string)
-        [Required]
         public string TulajdonosUserId { get; set; } = string.Empty;
 
         // Navigációs tulajdonság – felhasználó, akié a hirdetés
