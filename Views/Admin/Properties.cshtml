@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Homecat.Models.Property>
+
+@{
+    ViewData["Title"] = "Hirdetések (admin)";
+}
+
+<h1>Összes hirdetés</h1>
+
+<p class="text-muted">
+    Admin nézet: a rendszer összes ingatlan hirdetésének listája.
+</p>
+
+<table class="table table-striped table-sm">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Cím</th>
+            <th>Kategória</th>
+            <th>Ár (Ft)</th>
+            <th>Felhasználó</th>
+            <th>Létrehozva</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        <tr>
+            <td>@p.Id</td>
+            <td>@p.Cim</td>
+            <td>@p.Category</td>
+            <td>@string.Format("{0:N0}", p.Ar)</td>
+            <td>
+                @if (p.TulajdonosUser != null)
+                {
+                    @p.TulajdonosUser.Email
+                }
+                else
+                {
+                    <span class="text-muted">n/a</span>
+                }
+            </td>
+            <td>@p.Letrehozva.ToLocalTime().ToString("yyyy.MM.dd HH:mm")</td>
+            <td>
+                <a asp-controller="Property" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-info">Részletek</a>
+                <a asp-controller="Admin" asp-action="DeleteProperty" asp-route-id="@p.Id" class="btn btn-sm btn-danger">Törlés (admin)</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

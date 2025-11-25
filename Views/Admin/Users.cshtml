@@ -1,0 +1,45 @@
+﻿@using Homecat_P.Controllers
+
+@model IEnumerable<AdminUserListItemViewModel>
+
+
+@{
+    ViewData["Title"] = "Felhasználók (admin)";
+}
+
+<h1>Felhasználók</h1>
+
+<p class="text-muted">
+    Itt látható az összes regisztrált felhasználó, a típusukkal és a hozzájuk rendelt Identity szerepkörökkel.
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Felhasználónév</th>
+            <th>Felhasználó típusa</th>
+            <th>Szerepkörök</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var u in Model)
+    {
+        <tr>
+            <td>@u.Email</td>
+            <td>@u.UserName</td>
+            <td>@u.UserType</td>
+            <td>
+                @if (u.Roles.Any())
+                {
+                    @string.Join(", ", u.Roles)
+                }
+                else
+                {
+                    <span class="text-muted">nincs szerepkör</span>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

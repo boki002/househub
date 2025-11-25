@@ -20,3 +20,8 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Kattintható képek – kéz kurzor */
+.img-clickable {
+    cursor: pointer;
+}

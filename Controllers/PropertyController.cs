@@ -142,8 +142,6 @@ namespace Homecat.Controllers
         // Egy konkrét ingatlan részletes adatait jeleníti meg
         public async Task<IActionResult> Details(int id)
         {
-            // Lekérdezzük az ingatlant a megadott azonosító alapján,
-            // betöltve a tulajdonos felhasználót és a képeket is
             var property = await _context.Properties
                 .Include(p => p.TulajdonosUser)
                 .Include(p => p.Kepek)
@@ -151,12 +149,33 @@ namespace Homecat.Controllers
 
             if (property == null)
             {
-                // Ha nincs ilyen Id-jű ingatlan, 404-et (NotFound) adunk vissza
                 return NotFound();
             }
 
+            // Alapértelmezés: nem szerkeszthet
+            bool canEdit = false;
+
+            // Ha be van jelentkezve valaki
+            if (User.Identity?.IsAuthenticated ?? false)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+
+                if (currentUser != null)
+                {
+                    // Admin vagy az ingatlan tulajdonosa -> szerkeszthet
+                    if (User.IsInRole("Admin") || property.TulajdonosUserId == currentUser.Id)
+                    {
+                        canEdit = true;
+                    }
+                }
+            }
+
+            // Ezt a flaget használjuk majd a nézetben
+            ViewBag.CanEdit = canEdit;
+
             return View(property);
         }
+
 
         // -------------------------------------------------------
         // ÚJ HIRDETÉS LÉTREHOZÁSA
@@ -293,7 +312,7 @@ namespace Homecat.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [Authorize] // Csak bejelentkezett felhasználó hívhatja
         public async Task<IActionResult> DeleteImage(int imageId)
         {
             // Lekérjük a képet az adatbázisból, betöltve a hozzá tartozó ingatlant is
@@ -315,7 +334,7 @@ namespace Homecat.Controllers
                 return NotFound();
             }
 
-            // Bejelentkezett user lekérése
+            // Bejelentkezett felhasználó lekérése
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -325,26 +344,20 @@ namespace Homecat.Controllers
 
             // Jogosultság ellenőrzése:
             // - admin bármit törölhet
-            // - nem admin csak a saját hirdetéséhez tartozó képet törölhet
+            // - NEM admin CSAK a saját hirdetéséhez tartozó képet törölheti
             if (!User.IsInRole("Admin") && property.TulajdonosUserId != user.Id)
             {
+                // Nincs joga -> HTTP 403
                 return Forbid();
             }
 
-            // ---------------------------------
-            // Fájl törlése a fájlrendszerből
-            // ---------------------------------
-
-            // Az ImagePath relatív út (pl. /images/properties/5/valami.jpg)
-            var relativePath = image.ImagePath;
-
-            if (!string.IsNullOrWhiteSpace(relativePath))
+            // -----------------------
+            // Fájl törlése a lemezről
+            // -----------------------
+            if (!string.IsNullOrWhiteSpace(image.ImagePath))
             {
-                // Leszedjük az elejéről az esetleges előre perjelet (/)
-                var trimmedPath = relativePath.TrimStart('/');
-
-                // Fizikai elérési út: wwwroot + relatív út
-                var fullPath = Path.Combine(_env.WebRootPath, trimmedPath.Replace('/', Path.DirectorySeparatorChar));
+                var trimmed = image.ImagePath.TrimStart('/');
+                var fullPath = Path.Combine(_env.WebRootPath, trimmed.Replace('/', Path.DirectorySeparatorChar));
 
                 if (System.IO.File.Exists(fullPath))
                 {
@@ -352,16 +365,16 @@ namespace Homecat.Controllers
                 }
             }
 
-            // ---------------------------------
+            // -----------------------
             // Kép törlése az adatbázisból
-            // ---------------------------------
-
+            // -----------------------
             _context.PropertyImages.Remove(image);
             await _context.SaveChangesAsync();
 
-            // Visszairányítás a hirdetés Részletek oldalára
+            // Vissza a hirdetés részleteihez
             return RedirectToAction("Details", new { id = property.Id });
         }
+
 
         // -------------------------------------------------------
         // HIRDETÉS SZERKESZTÉSE

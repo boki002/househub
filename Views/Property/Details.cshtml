@@ -51,18 +51,22 @@
             @foreach (var img in Model.Kepek)
             {
                 <div class="col-md-3 mb-3 text-center">
+                    <!--
+                        A képre kattintva megnyitunk egy Bootstrap modalt,
+                        benne ugyanezzel a képpel nagy méretben.
+                        data-bs-toggle="modal" + data-bs-target="#imageModal" -> ez nyitja a modalt
+                        data-img-src -> ide tesszük a nagy kép útvonalát, a JS innen olvassa ki
+                    -->
                     <img src="@img.ImagePath"
-                         class="img-fluid img-thumbnail mb-2"
-                         alt="Ingatlan kép" />
+                         class="img-fluid img-thumbnail mb-2 img-clickable"
+                         alt="Ingatlan kép"
+                         data-bs-toggle="modal"
+                         data-bs-target="#imageModal"
+                         data-img-src="@img.ImagePath" />
 
-                    @* Csak bejelentkezett felhasználó lássa a törlés gombot *@
-                    @if (User.Identity?.IsAuthenticated ?? false)
+                    @* Ha megmaradt a kép törlés form, az maradhat itt alatta *@
+                    @if (ViewBag.CanEdit == true)
                     {
-                        <!--
-                            Ha nagyon pontosan csak admin + tulaj lássa, az ellenőrzést
-                            a szerveren már megtettük, de itt is szűrhetünk (pl. ViewBag-ben átadva, vagy Claims alapján).
-                            Most egyszerűen csak authenticated usernek mutatjuk, a végső jogot a controller dönti el.
-                        -->
                         <form asp-action="DeleteImage" method="post" class="d-inline">
                             <input type="hidden" name="imageId" value="@img.Id" />
                             <button type="submit" class="btn btn-sm btn-outline-danger"
@@ -72,15 +76,66 @@
                             @Html.AntiForgeryToken()
                         </form>
                     }
+
                 </div>
             }
         </div>
     }
 
 
+
 </div>
 
-<p class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
-    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Törlés</a>
-</p>
+@if (ViewBag.CanEdit == true)
+{
+    <p class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Szerkesztés</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Törlés</a>
+    </p>
+}
+
+
+<!--
+    Bootstrap modal, amelyben a kattintott kép nagyban jelenik meg.
+    A #imageModal id-val hivatkozunk rá az img data-bs-targetjén keresztül.
+-->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <!--
+                    Ebbe az <img>-be tesszük bele a kattintott kép forrását (src).
+                    Alapértelmezett src lehet üres, a JS fogja beállítani.
+                -->
+                <img id="imageModalImg" src="" class="img-fluid" alt="Nagyított kép" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Ez a script gondoskodik arról, hogy kattintáskor a megfelelő kép kerüljön a modalba.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Megkeressük az összes olyan képet, amin van img-clickable osztály
+            var clickableImages = document.querySelectorAll(".img-clickable");
+            var modalImg = document.getElementById("imageModalImg");
+
+            clickableImages.forEach(function (img) {
+                img.addEventListener("click", function () {
+                    // A data-img-src attribútumból kiolvassuk a nagy kép elérési útját
+                    var src = img.getAttribute("data-img-src");
+                    // Beállítjuk a modal képen
+                    modalImg.setAttribute("src", src);
+                });
+            });
+        });
+    </script>
+}
+
