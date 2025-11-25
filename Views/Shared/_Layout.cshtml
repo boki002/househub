@@ -39,6 +39,16 @@
                                         Szerepkör / felhasználó típus
                                     </a>
                                 </li>
+
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Property" asp-action="MyProperties">
+                                        Saját hirdetéseim
+                                    </a>
+                                </li>
+                            }
+
                             }
                         </ul>
 

@@ -1,7 +1,89 @@
 ﻿@model IEnumerable<Property>
+
+
+@{
+    ViewData["Title"] = "Ingatlanok";
+}
+
+<h2>Ingatlanok keresése</h2>
+
+<form method="get" class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <label class="form-label">Kulcsszó</label>
+        <input name="keyword" class="form-control" placeholder="pl. kert, felújított, panoráma" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Kategória</label>
+        <select name="category" class="form-select">
+            <option value="">(Mind)</option>
+            <option>lakás</option>
+            <option>ház</option>
+            <option>telek</option>
+            <option>iroda</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Eladó / Kiadó</label>
+        <select name="listingType" class="form-select">
+            <option value="">(Mind)</option>
+            <option>eladó</option>
+            <option>kiadó</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Szobaszám</label>
+        <input type="number" name="rooms" class="form-control" min="0" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Min. alapterület</label>
+        <input type="number" name="minArea" class="form-control" min="0" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Max. alapterület</label>
+        <input type="number" name="maxArea" class="form-control" min="0" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Min. ár (Ft)</label>
+        <input type="number" name="minPrice" class="form-control" min="0" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Max. ár (Ft)</label>
+        <input type="number" name="maxPrice" class="form-control" min="0" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Rendezés</label>
+        <select name="sort" class="form-select">
+            <option value="">Legújabb</option>
+            <option value="price_asc">Ár (növekvő)</option>
+            <option value="price_desc">Ár (csökkenő)</option>
+            <option value="area_asc">Alapterület (növekvő)</option>
+            <option value="area_desc">Alapterület (csökkenő)</option>
+        </select>
+    </div>
+
+    <div class="col-md-12">
+        <button class="btn btn-primary">Keresés</button>
+        <a href="/Property" class="btn btn-secondary">Alaphelyzet</a>
+    </div>
+
+</form>
+
+
 @{
     ViewData["Title"] = "Ingatlanok listája";
 }
+
+
+
 
 <h1>Ingatlanok</h1>
 

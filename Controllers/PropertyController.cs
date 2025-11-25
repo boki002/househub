@@ -35,7 +35,7 @@ namespace Homecat.Controllers
             _env = env;
         }
 
-   
+
 
 
         // -------------------------------------------------------
@@ -49,53 +49,90 @@ namespace Homecat.Controllers
         // - kategória (lakás/ház/telek/iroda)
         // - minimum és maximum ár
         public async Task<IActionResult> Index(
-            string? keresoszo,
-            PropertyCategory? kategoria,
-            int? minAr,
-            int? maxAr)
+    string? keyword,
+    string? category,
+    int? minArea,
+    int? maxArea,
+    int? minPrice,
+    int? maxPrice,
+    int? rooms,
+    string? listingType,
+    string? sort)
         {
-            // Alap lekérdezés: minden ingatlan
+            // Alap lekérdezés (még nincs végrehajtva)
             var query = _context.Properties
-                .Include(p => p.TulajdonosUser) // betöltjük a tulajdonos felhasználót is
+                .Include(p => p.Kepek)
                 .AsQueryable();
 
-            // Ha megadtak keresőszót, akkor címre és leírásra szűrünk
-            if (!string.IsNullOrWhiteSpace(keresoszo))
-            {
-                string k = keresoszo.Trim().ToLower();
+            // -----------------------------
+            // Keresési feltételek
+            // -----------------------------
 
+            // Kulcsszó keresés (cím + leírás)
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
                 query = query.Where(p =>
-                    p.Cim.ToLower().Contains(k) ||
-                    (p.Leiras != null && p.Leiras.ToLower().Contains(k)));
+                    p.Cim.Contains(keyword) ||
+                    p.Leiras.Contains(keyword));
             }
 
-            // Kategória szerinti szűrés (ha meg van adva)
-            if (kategoria.HasValue)
+            // Kategória
+            // Kategória szűrés (enum alapján)
+            if (!string.IsNullOrWhiteSpace(category))
             {
-                query = query.Where(p => p.Category == kategoria.Value);
+                if (Enum.TryParse<PropertyCategory>(category, ignoreCase: true, out var catEnum))
+                {
+                    query = query.Where(p => p.Category == catEnum);
+                }
             }
 
-            // Minimum ár (ha meg van adva)
-            if (minAr.HasValue)
+
+            // Eladó / Kiadó
+            if (!string.IsNullOrWhiteSpace(listingType))
             {
-                query = query.Where(p => p.Ar >= minAr.Value);
+                if (Enum.TryParse<ListingType>(listingType, ignoreCase: true, out var typeEnum))
+                {
+                    query = query.Where(p => p.ListingType == typeEnum);
+                }
             }
 
-            // Maximum ár (ha meg van adva)
-            if (maxAr.HasValue)
+
+            // Alapterület
+            if (minArea.HasValue)
+                query = query.Where(p => p.Alapterulet >= minArea);
+
+            if (maxArea.HasValue)
+                query = query.Where(p => p.Alapterulet <= maxArea);
+
+            // Ár
+            if (minPrice.HasValue)
+                query = query.Where(p => p.Ar >= minPrice);
+
+            if (maxPrice.HasValue)
+                query = query.Where(p => p.Ar <= maxPrice);
+
+            // Szobaszám
+            if (rooms.HasValue)
+                query = query.Where(p => p.Szobaszam == rooms);
+
+            // -----------------------------
+            // Rendezés
+            // -----------------------------
+            query = sort switch
             {
-                query = query.Where(p => p.Ar <= maxAr.Value);
-            }
+                "price_asc" => query.OrderBy(p => p.Ar),
+                "price_desc" => query.OrderByDescending(p => p.Ar),
+                "area_asc" => query.OrderBy(p => p.Alapterulet),
+                "area_desc" => query.OrderByDescending(p => p.Alapterulet),
+                _ => query.OrderByDescending(p => p.Letrehozva) // default: legújabb elöl
+            };
 
-            // Rendezés: legújabb elöl
-            query = query.OrderByDescending(p => p.Letrehozva);
+            // Lekérdezés végrehajtása
+            var result = await query.ToListAsync();
 
-            // Lekérdezés végrehajtása adatbázison
-            var list = await query.ToListAsync();
-
-            // A lista átadása a nézetnek megjelenítésre
-            return View(list);
+            return View(result);
         }
+
 
         // -------------------------------------------------------
         // RÉSZLETEK
@@ -529,5 +566,36 @@ namespace Homecat.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // -------------------------------------------------------
+        // SAJÁT HIRDETÉSEK LISTÁJA
+        // -------------------------------------------------------
+
+        [Authorize] // Csak bejelentkezett felhasználó érheti el
+        public async Task<IActionResult> MyProperties()
+        {
+            // Bejelentkezett felhasználó lekérése
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                // Ha nincs user (nem lenne szabad az [Authorize] miatt), visszaküldjük loginra
+                return Challenge();
+            }
+
+            // Lekérdezzük azokat az ingatlanokat, amelyeknek a TulajdonosUserId-je
+            // megegyezik a bejelentkezett felhasználó Id-jával
+            var sajatHirdetesek = await _context.Properties
+                .Include(p => p.Kepek)             // Képeket is betöltjük, ha kell thumbnail
+                .Where(p => p.TulajdonosUserId == user.Id)
+                .OrderByDescending(p => p.Letrehozva)
+                .ToListAsync();
+
+            // A listát átadjuk a nézetnek
+            return View(sajatHirdetesek);
+        }
+
+
+
     }
 }

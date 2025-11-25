@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Property>
+
+@{
+    ViewData["Title"] = "Saját hirdetéseim";
+}
+
+<h1>Saját hirdetéseim</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Új hirdetés feladása</a>
+</p>
+
+@if (!Model.Any())
+{
+    <p>Még nincs egyetlen hirdetésed sem.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Kép</th>
+                <th>Cím</th>
+                <th>Kategória</th>
+                <th>Ár (Ft)</th>
+                <th>Létrehozva</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (item.Kepek != null && item.Kepek.Any())
+                        {
+                            <img src="@item.Kepek.First().ImagePath"
+                                 style="max-width: 80px; max-height: 60px;"
+                                 class="img-thumbnail" />
+                        }
+                    </td>
+                    <td>@item.Cim</td>
+                    <td>@item.Category</td>
+                    <td>@string.Format("{0:N0}", item.Ar)</td>
+                    <td>@item.Letrehozva.ToLocalTime().ToString("yyyy.MM.dd HH:mm")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Részletek</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Szerkesztés</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Törlés</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
