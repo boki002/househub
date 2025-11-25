@@ -79,3 +79,5 @@ Csak bejelentkezett felhasználó adhat fel hirdetést
 Kép törlése: csak tulajdonos vagy admin végezheti
 
 UserType + Identity Role mindig szinkronban van
+
+Admin
