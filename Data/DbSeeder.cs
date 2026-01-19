@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Homecat.Models;                       // ApplicationUser eléréséhez
+using househub.Models;                       // ApplicationUser eléréséhez
 using Microsoft.AspNetCore.Identity;        // RoleManager, UserManager
 
-namespace Homecat.Data                    
+namespace househub.Data                    
 {
     public static class DbSeeder
     {
@@ -25,7 +25,7 @@ namespace Homecat.Data
 
             // 2. Admin felhasználó létrehozása
 
-            string adminEmail = "admin@homecat.local";
+            string adminEmail = "admin@househub.local";
             string adminPassword = "Admin123";
 
             var existingAdmin = await userManager.FindByEmailAsync(adminEmail);

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Homecat.Models
+namespace househub.Models
 {
     // Ingatlan kategória (lakás, ház, telek, iroda)
     public enum PropertyCategory

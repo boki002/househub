@@ -1,5 +1,5 @@
-﻿using Homecat.Data;               // ApplicationDbContext eléréséhez
-using Homecat.Models;             // Property, PropertyCategory, stb.
+﻿using househub.Data;               // ApplicationDbContext eléréséhez
+using househub.Models;             // Property, PropertyCategory, stb.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Hosting; // IWebHostEnvironment
 
 
 
-namespace Homecat.Controllers
+namespace househub.Controllers
 {
     // Ez a controller kezeli az ingatlan hirdetéseket (Property)
     public class PropertyController : Controller

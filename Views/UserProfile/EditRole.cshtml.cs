@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Homecat.Views.UserProfile
+namespace househub.Views.UserProfile
 {
     public class EditRoleModel : PageModel
     {

@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Homecat.Models;                // ErrorViewModel, Property, stb. (ha nálad Homecat_P.Models, akkor azt írd ide)
-using Homecat.Data;                  // ApplicationDbContext eléréséhez
+using househub.Models;                // ErrorViewModel, Property, stb. (ha nálad househub_P.Models, akkor azt írd ide)
+using househub.Data;                  // ApplicationDbContext eléréséhez
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // ToListAsync, Include, OrderByDescending
 
-namespace Homecat_P.Controllers
+namespace househub_P.Controllers
 {
     public class HomeController : Controller
     {

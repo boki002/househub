@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Homecat.Models;                          // ApplicationUser, Property, UserType
-using Homecat.Data;                            // ApplicationDbContext
+using househub.Models;                          // ApplicationUser, Property, UserType
+using househub.Data;                            // ApplicationDbContext
 using Microsoft.AspNetCore.Authorization;      // [Authorize]
 using Microsoft.AspNetCore.Identity;           // UserManager, IdentityRole
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;           // Include, ToListAsync
 
-namespace Homecat_P.Controllers                  // FIGYELEM: ha a többi controller namespace-e Homecat.Controllers, akkor ezt írd!
+namespace househub_P.Controllers                  // FIGYELEM: ha a többi controller namespace-e househub.Controllers, akkor ezt írd!
 {
     // Ez a controller az admin felületet valósítja meg.
     // Csak az "Admin" szerepkörrel rendelkező felhasználók érhetik el.

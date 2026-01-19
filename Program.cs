@@ -1,5 +1,5 @@
-using Homecat.Data;
-using Homecat.Models;
+using househub.Data;
+using househub.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -63,7 +63,7 @@ using (var scope = app.Services.CreateScope())
 
         // 3) Lefuttatjuk az általunk írt adatbázis seeder metódust,
         //    ami létrehozza a szerepköröket (Admin, Ingatlanos, Tulajdonos)
-        //    és egy alap admin felhasználót (admin@homecat.local / Admin123)
+        //    és egy alap admin felhasználót (admin@househub.local / Admin123)
         DbSeeder.SeedAsync(roleManager, userManager).GetAwaiter().GetResult();
     }
     catch (Exception ex)

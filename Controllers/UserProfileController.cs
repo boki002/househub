@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Homecat.Models;                      // ApplicationUser, UserType
+using househub.Models;                      // ApplicationUser, UserType
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Homecat_P.Controllers            // ha a többi controller namespace-e Homecat, akkor azt használd
+namespace househub_P.Controllers            // ha a többi controller namespace-e househub, akkor azt használd
 {
     // Ez a controller kezeli a bejelentkezett felhasználó profilját,
     // konkrétan a felhasználó típusának (Tulajdonos / Ingatlanos) beállítását.

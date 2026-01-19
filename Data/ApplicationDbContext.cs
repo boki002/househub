@@ -1,8 +1,8 @@
-﻿using Homecat.Models;
+﻿using househub.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Homecat.Data
+namespace househub.Data
 {
     // Az alkalmazás EF Core kontextusa
     // IdentityDbContext<ApplicationUser> = tartalmazza az Identity-táblákat is

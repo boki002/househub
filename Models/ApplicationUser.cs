@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Homecat.Models
+namespace househub.Models
 {
     // A felhasználó típusát jelző enum
     public enum UserType

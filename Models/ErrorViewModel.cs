@@ -1,4 +1,4 @@
-namespace Homecat.Models
+namespace househub.Models
 {
     // Ez a ViewModel az Error nézethez (Error.cshtml) tartozik.
     // A RequestId a hibához kapcsolódó egyedi azonosítót tárolja.
