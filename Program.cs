@@ -34,6 +34,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 
 // MVC támogatás (Controller + View)
 builder.Services.AddControllersWithViews();
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
