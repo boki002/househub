@@ -29,7 +29,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
 })
-    .AddRoles<IdentityRole>() // Szerepkörök támogatása (admin, stb.)
+    .AddRoles<IdentityRole>() // Szerepkörök támogatása (admin, stb.) 
     .AddEntityFrameworkStores<ApplicationDbContext>(); // Identity adatok is MariaDB-ben lesznek
 
 // MVC támogatás (Controller + View)
