@@ -901,3 +901,551 @@ További célom a következő félévben:
 - konténeres (Docker) futtatás bevezetése.
 
 Ezzel a dokumentum lezárul.
+
+====================================================
+OLDAL 23 - RÉSZLETES USE CASE LEÍRÁSOK
+====================================================
+
+Ebben a fejezetben a legfontosabb felhasználói eseteket részletesen, lépésről lépésre mutatom be.
+
+USE CASE 1 - Látogató ingatlanokat keres
+Szereplő: nem bejelentkezett látogató.
+Előfeltétel: az alkalmazás elindult, vannak hirdetések.
+Lépések:
+1. A látogató megnyitja a főoldalt.
+2. Megtekinti a legfrissebb 6 hirdetést.
+3. Az „Ingatlanok” menüpontra kattint.
+4. Kulcsszót ad meg, majd ár szerint szűr.
+5. Találatlistát kap és kiválaszt egy hirdetést.
+6. Megnyitja a részleteket és képgalériát.
+Utófeltétel: nincs adatváltozás, csak olvasás.
+
+USE CASE 2 - Új felhasználó regisztrál
+Szereplő: látogató.
+Lépések:
+1. „Regisztráció” menüpontra kattint.
+2. Megad emailt és jelszót.
+3. Rendszer validálja az adatokat.
+4. Sikeres regisztráció után bejelentkezett állapotba kerül.
+Utófeltétel: új rekord az AspNetUsers táblában.
+
+USE CASE 3 - Felhasználó hirdetést ad fel
+Szereplő: bejelentkezett felhasználó.
+Lépések:
+1. „Új hirdetés” oldal megnyitása.
+2. Kötelező mezők kitöltése.
+3. Több kép feltöltése.
+4. Mentés.
+5. Rendszer létrehozza a Property rekordot.
+6. Képeket fájlrendszerbe menti és PropertyImages táblába rögzíti.
+Utófeltétel: új hirdetés látható listában.
+
+USE CASE 4 - Felhasználó módosítja a profilját
+Szereplő: bejelentkezett user.
+Lépések:
+1. Beállítások oldal megnyitása.
+2. Email/telefon módosítása.
+3. Szükség esetén jelszócsere.
+4. Mentés.
+Utófeltétel: user rekord frissül, role-szinkron lefut.
+
+USE CASE 5 - Admin felhasználót ellenőriz
+Szereplő: admin.
+Lépések:
+1. Admin menü megnyitása.
+2. Felhasználók lista megtekintése role adatokkal.
+3. Hirdetések lista ellenőrzése.
+4. Szükség esetén törlés.
+Utófeltétel: admin kontrollált rendszerfelügyeletet végez.
+
+Ez a use case gyűjtemény jól mutatja, hogy a rendszerben különböző hozzáférési szintek és folyamatok léteznek, mégis konzisztens üzleti logikával.
+
+====================================================
+OLDAL 24 - SZEKVENCIÁLIS MŰKÖDÉS LEÍRÁSA (FOLYAMATLOGIKA)
+====================================================
+
+Ebben a fejezetben a háttérfolyamatok sorrendjét mutatom be, mintha szekvenciadiagramot szövegesen értelmeznénk.
+
+1. Login kérés szekvenciája
+- Felhasználó elküldi a login űrlapot.
+- Identity PageModel feldolgozza.
+- UserManager ellenőrzi a usert.
+- SignInManager létrehozza az auth cookie-t.
+- Böngésző eltárolja sütit.
+- Következő kérésben User principal felépül.
+
+2. Hirdetés létrehozás szekvenciája
+- Browser POST /Property/Create.
+- PropertyController validál.
+- UserManager visszaadja aktuális usert.
+- Controller létrehozza Property entitást.
+- EF SaveChanges: INSERT Properties.
+- Képek ciklusban mentődnek lemezre.
+- EF SaveChanges: INSERT PropertyImages.
+- Redirect /Property.
+
+3. Képtörlés szekvenciája
+- Browser POST /Property/DeleteImage.
+- Controller betölti image + property kapcsolódást.
+- Jogosultságellenőrzés.
+- Fizikai fájl törlése.
+- EF DELETE PropertyImages.
+- Redirect Details oldalra.
+
+4. Settings mentés szekvenciája
+- Browser POST /Settings.
+- Controller validálja modelt.
+- Email/username update.
+- Phone update.
+- UserType update.
+- Role remove/add.
+- Opcionális ChangePassword.
+- RefreshSignIn.
+- Redirect GET /Settings + TempData.
+
+5. Admin lista szekvenciája
+- Browser GET /Admin/Users.
+- Authorize(Roles=Admin) ellenőrzés.
+- UserManager.Users lekérdezés.
+- Minden userhez GetRolesAsync.
+- ViewModel lista építés.
+- Razor View render.
+
+A szekvenciális szemlélet segít bizonyítani, hogy a rendszer működése determinisztikus, jól kontrollált és hibakezelhető.
+
+====================================================
+OLDAL 25 - VALIDÁCIÓS STRATÉGIA ÉS ADATMINŐSÉG
+====================================================
+
+A projekt több rétegben végez validációt.
+
+1. Model szintű validáció
+DataAnnotation attribútumok:
+- [Required]
+- [Range]
+- [MaxLength]
+- [EmailAddress]
+- [Phone]
+- [Compare]
+
+Ez biztosítja, hogy a kliens és szerver oldali validáció is konzisztens legyen.
+
+2. Controller szintű validáció
+SettingsController külön üzleti szabályokat ellenőriz:
+- csak két UserType engedélyezett,
+- jelszócsere mezők együtt kötelezők,
+- sikertelen Identity műveletek ModelState-be kerülnek.
+
+3. Üzleti validáció
+Tulajdonosi ellenőrzés:
+nem elég a formai adathelyesség, jogosultság is szükséges.
+
+4. Miért fontos a többrétegű validáció?
+- kliens oldali ellenőrzés gyors UX-et ad,
+- szerver oldali ellenőrzés biztonságot ad,
+- üzleti validáció ad kontextushelyes működést.
+
+5. Fejlesztési javaslat
+- központi validation helper,
+- szabálynaplózás,
+- bővített hibaüzenet-lokalizáció.
+
+A validációs stratégia bizonyítja, hogy a rendszer adatminőségre és biztonságra tervezett.
+
+====================================================
+OLDAL 26 - HIBAKEZELÉSI MINTÁK
+====================================================
+
+A rendszer többféle hibakezelési ágat használ:
+
+1. NotFound (404)
+Ha az adott ID-jű hirdetés/kép nem létezik.
+
+2. Forbid (403)
+Ha a felhasználó be van jelentkezve, de nincs jogosultsága.
+
+3. Challenge
+Ha nincs hitelesített user, login folyamatra terelés történik.
+
+4. BadRequest
+Paraméterinkonzisztencia esetén.
+
+5. Error action
+HomeController Error akció központi hibanézetet ad.
+
+6. Induláskori exception log
+Program.cs logolja a seed/init hibákat.
+
+Miért jó ez?
+- a hibaállapotok nem keverednek össze,
+- HTTP szemantikailag helyes válaszok születnek,
+- fejlesztés és hibakeresés könnyebb.
+
+Fejlesztési lehetőség:
+- globális exception middleware,
+- saját domain exception típusok,
+- felhasználóbarát hibaoldalak role és nyelv szerint.
+
+====================================================
+OLDAL 27 - KÓDMINŐSÉG, KARBANTARTHATÓSÁG, CLEAN CODE
+====================================================
+
+A projektben számos pozitív karbantarthatósági minta jelenik meg:
+
+1. Felelősségi körök elkülönítése
+Controller nem tárol statikus állapotot.
+
+2. DI használat
+Service-ek konstruktoron érkeznek, nem kézi példányosítással.
+
+3. Aszinkron adatkezelés
+EF Core műveletek többnyire async metódusokkal futnak.
+
+4. ViewModel használat
+Settings oldalon külön model segíti a tiszta adatcserét.
+
+5. Enum alapú mezők
+Könnyebb olvashatóság és kevesebb mágikus string.
+
+6. Kódszintű kommentelés
+A projektben részletes magyar kommentek találhatók, ami oktatási környezetben hasznos.
+
+Refaktor javaslatok:
+- namespace-ek egységesítése (househub és househub_P keveredése),
+- repository/service réteg bevezetése nagyobb skálához,
+- közös segédmetódusok (jogosultságellenőrzés) kiszervezése.
+
+Összességében a kód olvasható, közepes méretű csapatban jól átadható.
+
+====================================================
+OLDAL 28 - TELJESÍTMÉNY ÉS SKÁLÁZHATÓSÁG
+====================================================
+
+Jelenlegi teljesítmény szempontok:
+- IQueryable alapú dinamikus keresés,
+- lazy helyett célzott Include használat,
+- képek fizikailag fájlrendszerben.
+
+Lehetséges szűk keresztmetszetek:
+1. Nagy hirdetésszámnál lapozás hiánya.
+2. Több felhasználó esetén role-lekérdezések költsége admin listában.
+3. Nagy képfájlok tárolása helyi lemezen.
+
+Fejlesztési opciók:
+1. Pagination és limitált listák.
+2. Indexek bevezetése (ár, létrehozás, kategória mezőkön).
+3. Kép CDN vagy object storage használata.
+4. Caching népszerű lekérdezésekre.
+5. Read-model optimalizálás admin felületre.
+
+Skálázhatósági stratégia:
+- rövid táv: optimalizált SQL + pagination,
+- közép táv: rétegzett szolgáltatások,
+- hosszú táv: API + külön front-end + microservice felbontás.
+
+A jelenlegi rendszer kis-közepes terhelésre megfelelő, és jó alapot ad bővítéshez.
+
+====================================================
+OLDAL 29 - ADATVÉDELEM ÉS GDPR SZEMPONTOK
+====================================================
+
+Mivel a rendszer felhasználói adatokat kezel (email, telefonszám), GDPR szemlélet indokolt.
+
+1. Kezelt személyes adatok
+- email,
+- telefonszám,
+- bejelentkezési metadata.
+
+2. Biztonsági alapok
+- jelszó hash-elve,
+- role-alapú hozzáférés,
+- védett endpointok.
+
+3. Felhasználói jogok (javasolt bővítés)
+- profiladat export,
+- profiladat törlés,
+- adatkezelési hozzájárulás naplózása.
+
+4. Naplózás és minimalizáció
+Csak szükséges adatokat célszerű logolni.
+
+5. Adatmegőrzési politika
+Érdemes szabályozni, hogy inaktív adatok meddig maradnak.
+
+6. Adatvédelmi oldal
+A projekt tartalmaz Privacy oldalt, amely tovább bővíthető jogi szöveggel.
+
+E fejezet vizsgán fontos, mert nemcsak programozási, hanem felelős rendszertervezési gondolkodást is mutat.
+
+====================================================
+OLDAL 30 - PREZENTÁCIÓS SEGÉDLET (MIT MONDJ A VÉDÉSEN)
+====================================================
+
+Javasolt rövid, szakmai narratíva a vizsgán:
+
+1. „A househub célja egy több szereplős ingatlanplatform prototípus létrehozása volt.”
+2. „A rendszert ASP.NET Core MVC + EF Core + MariaDB stackkel építettem.”
+3. „Az autentikáció Identity alapon történik, saját ApplicationUser kiterjesztéssel.”
+4. „A fő üzleti entitás a Property, amely több képet kezel külön táblában.”
+5. „A jogosultságot háromszinten kezelem: [Authorize], role, tulajdonosi ellenőrzés.”
+6. „A beállítások modul egyszerre kezeli a profilfrissítést, role-szinkront és jelszócserét.”
+7. „Admin felületen felhasználó- és hirdetéskezelés valósul meg.”
+8. „A frontend Bootstrap alapú, egyedi modern stílusokkal.”
+9. „A rendszert build és funkcionális tesztekkel validáltam.”
+10. „A továbbfejlesztési tervben szerepel migráció, pagination, cache és API bővítés.”
+
+Lehetséges vizsgakérdés-válasz minták:
+K: Miért Identity?
+V: Biztonságos, bevált, standard autentikációs keretrendszer.
+
+K: Miért külön UserType és role?
+V: UserType üzleti gyorsjelző, role a tényleges jogosultságvégrehajtás.
+
+K: Miért fájlrendszerbe mented a képet?
+V: Egyszerű és gyors prototípusnál, később objektumtárra cserélhető.
+
+K: Hogyan véded az idegen adatok módosítását?
+V: Controller szintű tulajdonosi és role ellenőrzéssel.
+
+Ezzel a szöveges védési segédlettel magabiztos, strukturált bemutatás tartható.
+
+====================================================
+OLDAL 31 - ADATBÁZIS PÉLDAADATOK ÉS MINTA LEKÉRDEZÉSEK
+====================================================
+
+Vizsgán gyakran kérdés, hogy az adatmodell mennyire „életszerű”. Ezért hasznos bemutatni konkrét mintaadatokat és tipikus SQL gondolkodást.
+
+Minta felhasználók:
+1. admin@househub.local (Admin)
+2. kovacs.bela@mail.hu (Tulajdonos)
+3. iroda01@ingatlanpro.hu (Ingatlanos)
+
+Minta hirdetések:
+- Lakás, 56 m2, 2 szoba, 49 900 000 Ft
+- Ház, 140 m2, 4 szoba, 89 000 000 Ft
+- Iroda, 210 m2, 6 helyiség, bérleti díj
+
+Minta elemzési kérdések:
+1. Hány hirdetés van kategóriánként?
+2. Mekkora az átlagár kategóriánként?
+3. Melyik user adta fel a legtöbb hirdetést?
+4. Mely hirdetésekhez tartozik 5-nél több kép?
+
+Noha az alkalmazás EF Core-t használ, adatbázis-ismereti oldalról ezek mögött SQL aggregációk, JOIN-ok és rendezések vannak. Vizsgán ezt úgy érdemes megfogalmazni, hogy:
+- EF Core LINQ kifejezésekkel építem a lekérdezést,
+- a provider ebből SQL-t generál,
+- így egyszerre kapok típusbiztonságot és jó teljesítményt.
+
+Példa LINQ gondolkodás:
+- GroupBy kategóriára,
+- Count/Average aggregáció,
+- OrderByDescending mennyiségre.
+
+Adattisztasági szabály:
+A rendszer képtárolásnál külön kezeli a fájlútvonalat (adatbázis) és a valódi fájlt (fájlrendszer). Ez felvet szinkronizációs kérdéseket, ezért admin háttérkarbantartó feladatként később érdemes „árva fájl” ellenőrzést építeni.
+
+Ez a fejezet a vizsgán azt bizonyítja, hogy a projekt mögött nem csak „kódfuttatás”, hanem adatbázis-szintű gondolkodás is áll.
+
+====================================================
+OLDAL 32 - BIZTONSÁGI HARDENING TERV
+====================================================
+
+A jelenlegi rendszer alapvetően biztonságos, de éles üzemhez további erősítések javasoltak.
+
+1. Jelszópolicy szigorítás
+Fejlesztői környezetben alacsonyabb küszöb kényelmes, de élesben:
+- minimum 10-12 karakter,
+- kis/nagybetű + szám + speciális karakter,
+- ismétlődő jelszavak tiltása.
+
+2. Account lockout
+Bevezethető:
+- 5 sikertelen próbálkozás után ideiglenes tiltás,
+- lockout időszak fokozatos növelése.
+
+3. Kétfaktoros hitelesítés
+Identity támogatja, így bevezethető email vagy authenticator app alapú 2FA.
+
+4. Képfeltöltés védelme
+- fájlméret limit (pl. max 5 MB/kép),
+- engedélyezett MIME lista,
+- kiterjesztés whitelist,
+- opcionális vírusellenőrzés.
+
+5. Content Security Policy
+HTTP security headerek:
+- CSP,
+- X-Content-Type-Options,
+- Referrer-Policy.
+
+6. Audit log
+Kritikus műveletek naplózása:
+- role módosítás,
+- jelszócsere,
+- hirdetés törlés,
+- admin művelet.
+
+7. Titkok kezelése
+Connection string és kulcsok:
+- ne kerüljenek verziókövetésbe,
+- productionban environment secret store-ból jöjjenek.
+
+8. Szerveroldali rate limiting
+Az ASP.NET Core támogatja; belépés és keresés endpointokon ajánlott.
+
+9. GDPR hardening
+- account törlés workflow,
+- személyes adatexport endpoint,
+- adatkezelési log.
+
+Ezek a hardening lépések vizsgán jól használhatók „jövőbeli fejlesztési roadmap” bizonyítására.
+
+====================================================
+OLDAL 33 - DEVOPS, CI/CD, RELEASE STRATÉGIA
+====================================================
+
+Egy vizsgamunka értékét növeli, ha a fejlesztési folyamat is átgondolt.
+
+1. Verziókezelés
+Git repository szerkezet:
+- feature branch alapú munka,
+- pull request review,
+- release branch.
+
+2. CI pipeline javaslat
+Minden push-nál:
+1. dotnet restore
+2. dotnet build
+3. dotnet test
+4. artifact csomagolás
+
+3. Release pipeline
+Staging és production külön:
+- stagingre automatikus deploy,
+- productionra jóváhagyott release.
+
+4. Adatbázis release
+Migration script kontrollált futtatása release során.
+
+5. Monitorozás
+Application Insights vagy más APM:
+- hibaarány,
+- response idő,
+- user flow metrikák.
+
+6. Rollback stratégia
+Ha release hiba:
+- előző build visszaállítás,
+- adatbázis backupból visszatöltés.
+
+7. Konfigurációs profilok
+- Development
+- Staging
+- Production
+mindegyik saját appsettings és titokkezelés.
+
+8. Konténerizáció
+Később Dockerfile készíthető:
+- app konténer,
+- külön db konténer (lokális fejlesztéshez).
+
+Ez a fejezet demonstrálja, hogy a fejlesztő nem csak kódot ír, hanem üzemeltethető rendszert tervez.
+
+====================================================
+OLDAL 34 - RÉSZLETES VIZSGA DEMÓ FORGATÓKÖNYV (LÉPÉSRŐL LÉPÉSRE)
+====================================================
+
+0:00-1:00
+Projekt cél és technológia rövid bemutatása.
+
+1:00-3:00
+Program.cs áttekintés:
+- szolgáltatásregisztráció,
+- middleware,
+- seed folyamat.
+
+3:00-5:00
+Adatmodell bemutatás:
+- Property,
+- PropertyImage,
+- ApplicationUser + UserType,
+- relációk.
+
+5:00-7:00
+Regisztráció és login élő bemutatása.
+
+7:00-10:00
+Új hirdetés létrehozása:
+- adatok kitöltése,
+- több kép feltöltése,
+- listában megjelenés.
+
+10:00-12:00
+Saját hirdetés szerkesztése:
+- mezőmódosítás,
+- képtörlés,
+- jogosultság bizonyítása.
+
+12:00-14:00
+Beállítások oldal:
+- email módosítás,
+- user type váltás,
+- jelszócsere.
+
+14:00-16:00
+Admin felület:
+- felhasználók listája role-okkal,
+- hirdetések listája.
+
+16:00-18:00
+Biztonsági és validációs elemek:
+- antiforgery,
+- authorize,
+- tulajdonosi ellenőrzés.
+
+18:00-20:00
+Összegzés és jövőbeli fejlesztési tervek.
+
+Miért működik ez jól?
+- időkeretbe fér,
+- látványos élő működés,
+- technikailag mély, de érthető.
+
+====================================================
+OLDAL 35 - ZÁRÓ ÖSSZEGZÉS BŐVÍTETT VÁLTOZAT
+====================================================
+
+A househub rendszer egy komplex, mégis áttekinthető webes alkalmazás, amely gyakorlati példán keresztül mutatja be a full-stack webfejlesztés alapvető és haladó elemeit.
+
+A projekt legfontosabb szakmai értékei:
+1. Modern technológiai alap:
+.NET 8, ASP.NET Core MVC, EF Core, Identity, MariaDB.
+
+2. Üzletileg értelmezhető domain:
+Ingatlan hirdetések valós adatszerkezettel és szereplőkkel.
+
+3. Jól elkülönített rétegek:
+Controller-Model-View struktúra.
+
+4. Biztonságtudatos működés:
+Hitelesítés, jogosultság, tulajdonosi védelem, tokenes POST.
+
+5. Továbbfejleszthetőség:
+Roadmap és technikai bővítési lehetőségek egyértelműek.
+
+6. Oktatási érték:
+Jól demonstrálható vizsgán, mérhető és érthető.
+
+Egy vizsgamunka akkor erős, ha:
+- nem csak „lefut”,
+- hanem indokolható döntésekből épül,
+- és világos jövőképe van.
+
+A househub ebben jó példát mutat:
+- van architektúra,
+- van üzleti logika,
+- van biztonsági gondolkodás,
+- van felhasználói élmény.
+
+Záró mondat:
+A projekt alkalmas arra, hogy a vizsgán szakmailag meggyőző, gyakorlatias és strukturált bemutatást adjon, miközben valós fejlesztői kompetenciát demonstrál.
