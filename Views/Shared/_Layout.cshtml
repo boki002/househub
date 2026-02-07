@@ -1,102 +1,82 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="hu">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - househub_P</title>
+    <title>@ViewData["Title"] - househub</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/househub_P.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
+        @* Felső navigációs sáv *@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">househub_P</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">househub</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Menü nyitása">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    @* Bal oldali főmenü *@
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Főoldal</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Adatvédelem</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Property" asp-action="Index">Ingatlanok</a>
+                        </li>
 
-                    <!-- MENÜ -->
-                         <ul class="navbar-nav flex-grow-1">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            @* Ezek a menüpontok csak belépett felhasználónak láthatók *@
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                                <a class="nav-link text-dark" asp-controller="Property" asp-action="MyProperties">Saját hirdetéseim</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                <a class="nav-link text-dark" asp-controller="UserProfile" asp-action="EditRole">Felhasználó típus</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Property" asp-action="Index">Ingatlanok</a>
+                        }
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            @* Admin szerepkör esetén admin menü lenyílóban *@
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Felhasználók</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Properties">Hirdetések</a></li>
+                                </ul>
                             </li>
-
-                            @* Csak bejelentkezett felhasználónak mutatjuk *@
-                            @if (User.Identity?.IsAuthenticated ?? false)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="UserProfile" asp-action="EditRole">
-                                        Szerepkör / felhasználó típus
-                                    </a>
-                                </li>
-
-                   
-
-
-                             @if (User.Identity?.IsAuthenticated ?? false)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-controller="Property" asp-action="MyProperties">
-                                            Saját hirdetéseim
-                                        </a>
-                                    </li>
-
-                                <!-- Csak admin lássa az admin menüt -->
-                             @if (User.IsInRole("Admin"))
-                                {
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle text-dark"
-                                            href="#"
-                                            id="adminDropdown"
-                                            role="button"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Admin
-                                        </a>
-                                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                            <li>
-                                                <a class="dropdown-item" asp-controller="Admin" asp-action="Users">Felhasználók</a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" asp-controller="Admin" asp-action="Properties">Hirdetések</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                }
-                            }
-                           
-
-
-                            }
-                        </ul>
-
+                        }
                     </ul>
 
+                    @* Jobb oldalon a login/register vagy beállítások/kijelentkezés *@
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
 
+    @* Oldal tartalom *@
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
+    @* Lábléc *@
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - househub - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - househub - <a asp-area="" asp-controller="Home" asp-action="Privacy">Adatvédelem</a>
         </div>
     </footer>
 

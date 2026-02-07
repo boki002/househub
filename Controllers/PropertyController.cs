@@ -73,7 +73,7 @@ namespace househub.Controllers
             {
                 query = query.Where(p =>
                     p.Cim.Contains(keyword) ||
-                    p.Leiras.Contains(keyword));
+                    (p.Leiras != null && p.Leiras.Contains(keyword)));
             }
 
             // Kategória
@@ -460,11 +460,6 @@ namespace househub.Controllers
             // EF Core-nak jelezzük, hogy módosult entitásról van szó
             _context.Properties.Update(property);
 
-            // Módosítások mentése
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-
             // ---------------------------
             // ÚJ KÉPEK HOZZÁADÁSA EDITNÉL
             // ---------------------------
@@ -512,8 +507,10 @@ namespace househub.Controllers
                     existingImageCount++;
                 }
 
-                await _context.SaveChangesAsync();
             }
+
+            // Módosítások (mezők + opcionális új képek) mentése
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

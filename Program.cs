@@ -1,38 +1,37 @@
-using househub.Data;
+ï»¿using househub.Data;
 using househub.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
-var test = typeof(ApplicationDbContext); // debuggolási segédlet
 
-// Betöltjük a connection stringet az appsettings.json-ból
+// BetÃ¶ltjÃ¼k a connection stringet az appsettings.json-bÃ³l
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("A 'DefaultConnection' connection string hiányzik az appsettings.json-ból.");
+    ?? throw new InvalidOperationException("A 'DefaultConnection' connection string hiÃ¡nyzik az appsettings.json-bÃ³l.");
 
-// Itt állítjuk be az EF Core-t, hogy MariaDB-t használjon
+// Itt Ã¡llÃ­tjuk be az EF Core-t, hogy MariaDB-t hasznÃ¡ljon
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Fontos: Pomelo MariaDB provider konfigurálása
-    // ServerVersion.AutoDetect -> automatikusan felismeri a MariaDB verzióját
+    // Fontos: Pomelo MariaDB provider konfigurÃ¡lÃ¡sa
+    // ServerVersion.AutoDetect -> automatikusan felismeri a MariaDB verziÃ³jÃ¡t
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
-// Identity beállítása a saját ApplicationUser osztályunkkal
+// Identity beÃ¡llÃ­tÃ¡sa a sajÃ¡t ApplicationUser osztÃ¡lyunkkal
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    // Jelszókövetelmények (egyszerûsítve, hogy fejlesztéshez ne legyen túl szigorú)
+    // JelszÃ³kÃ¶vetelmÃ©nyek (egyszerÅ±sÃ­tve, hogy fejlesztÃ©shez ne legyen tÃºl szigorÃº)
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
 })
-    .AddRoles<IdentityRole>() // Szerepkörök támogatása (admin, stb.) 
+    .AddRoles<IdentityRole>() // SzerepkÃ¶rÃ¶k tÃ¡mogatÃ¡sa (admin, stb.)
     .AddEntityFrameworkStores<ApplicationDbContext>(); // Identity adatok is MariaDB-ben lesznek
 
-// MVC támogatás (Controller + View)
+// MVC tÃ¡mogatÃ¡s (Controller + View)
 builder.Services.AddControllersWithViews();
 // Identity UI (Login/Register) Razor Pages endpointjeihez szksges
 builder.Services.AddRazorPages();
@@ -40,56 +39,53 @@ builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
-// ADATBÁZIS LÉTREHOZÁSA ÉS KEZDÕ ADATOK FELTÖLTÉSE ALKALMAZÁS INDULÁSKOR
+// ADATBÃZIS LÃ‰TREHOZÃSA Ã‰S KEZDÅ ADATOK FELTÃ–LTÃ‰SE ALKALMAZÃS INDULÃSKOR
 using (var scope = app.Services.CreateScope())
 {
-    // A scope-ból ki tudjuk kérni a szükséges szolgáltatásokat
+    // A scope-bÃ³l ki tudjuk kÃ©rni a szÃ¼ksÃ©ges szolgÃ¡ltatÃ¡sokat
     var services = scope.ServiceProvider;
 
     try
     {
-        // 1) Lekérjük az adatbázis kontextust (ApplicationDbContext)
+        // 1) LekÃ©rjÃ¼k az adatbÃ¡zis kontextust (ApplicationDbContext)
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
 
         // ------------------------------
         // EnsureCreated:
         // ------------------------------
-        // Ez a metódus ellenõrzi, hogy léteznek-e az adatbázis objektumok (adatbázis + táblák).
-        // Ha még nem léteznek, automatikusan létrehozza õket EF Core alapján.
-        // FONTOS: Ez NEM migráció, hanem egy egyszerû "ha nincs, hozd létre" mechanizmus.
-        // Nekünk most ez pont elég, és megkerüljük vele az EF Tools hibáját.
+        // Ez a metÃ³dus ellenÅ‘rzi, hogy lÃ©teznek-e az adatbÃ¡zis objektumok (adatbÃ¡zis + tÃ¡blÃ¡k).
+        // Ha mÃ©g nem lÃ©teznek, automatikusan lÃ©trehozza Å‘ket EF Core alapjÃ¡n.
+        // FONTOS: Ez NEM migrÃ¡ciÃ³, hanem egy egyszerÅ± "ha nincs, hozd lÃ©tre" mechanizmus.
+        // NekÃ¼nk most ez pont elÃ©g, Ã©s megkerÃ¼ljÃ¼k vele az EF Tools hibÃ¡jÃ¡t.
         dbContext.Database.EnsureCreated();
 
-        // 2) Lekérjük a szerepkör- és felhasználókezelõ szolgáltatásokat Identity-hez
+        // 2) LekÃ©rjÃ¼k a szerepkÃ¶r- Ã©s felhasznÃ¡lÃ³kezelÅ‘ szolgÃ¡ltatÃ¡sokat Identity-hez
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // 3) Lefuttatjuk az általunk írt adatbázis seeder metódust,
-        //    ami létrehozza a szerepköröket (Admin, Ingatlanos, Tulajdonos)
-        //    és egy alap admin felhasználót (admin@househub.local / Admin123)
+        // 3) Lefuttatjuk az Ã¡ltalunk Ã­rt adatbÃ¡zis seeder metÃ³dust,
+        //    ami lÃ©trehozza a szerepkÃ¶rÃ¶ket (Admin, Ingatlanos, Tulajdonos)
+        //    Ã©s egy alap admin felhasznÃ¡lÃ³t (admin@househub.local / Admin123)
         DbSeeder.SeedAsync(roleManager, userManager).GetAwaiter().GetResult();
     }
     catch (Exception ex)
     {
-        // Ha itt hiba történik, élesben érdemes lenne naplózni (loggerrel),
-        // most egyszerûség kedvéért nem csinálunk semmit.
-        // Példa:
-        // var logger = services.GetRequiredService<ILogger<Program>>();
-        // logger.LogError(ex, "Hiba történt az adatbázis inicializálása közben.");
+        // Ha itt hiba tÃ¶rtÃ©nik, naplÃ³zzuk, hogy kÃ¶nnyebb legyen a hibakeresÃ©s.
+        app.Logger.LogError(ex, "Hiba tÃ¶rtÃ©nt az adatbÃ¡zis inicializÃ¡lÃ¡sa kÃ¶zben.");
     }
 }
 
-// Fejlesztési és éles környezet beállítások
+// FejlesztÃ©si Ã©s Ã©les kÃ¶rnyezet beÃ¡llÃ­tÃ¡sok
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// HTTPS kényszerítés
+// HTTPS kÃ©nyszerÃ­tÃ©s
 app.UseHttpsRedirection();
 
-// Statikus fájlok (pl. CSS, JS, képek)
+// Statikus fÃ¡jlok (pl. CSS, JS, kÃ©pek)
 app.UseStaticFiles();
 
 // Routing middleware
@@ -99,7 +95,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Alap route beállítása (HomeController / Index)
+// Alap route beÃ¡llÃ­tÃ¡sa (HomeController / Index)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
