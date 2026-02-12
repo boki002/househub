@@ -4,26 +4,32 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
+    @* Bejelentkezett állapot: beállítások + felhasználónév + kijelentkezés *@
     <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
+        <a class="nav-link text-dark" asp-controller="Settings" asp-action="Index" title="Beállítások">
+            Beállítások
+        </a>
     </li>
     <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+        <span class="nav-link text-dark">Szia @User.Identity?.Name!</span>
+    </li>
+    <li class="nav-item">
+        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button type="submit" class="nav-link btn btn-link text-dark">Kijelentkezés</button>
         </form>
     </li>
 }
 else
 {
+    @* Kijelentkezett állapot: regisztráció és bejelentkezés linkek *@
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Regisztráció</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Bejelentkezés</a>
     </li>
 }
 </ul>

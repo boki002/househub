@@ -1,0 +1,1451 @@
+HOUSEHUB VIZSGAMUNKA LEÍRÁS
+Részletes projektismertető (minimum 20 oldal)
+
+Szerző: ............................................
+Képzés: ............................................
+Dátum: .............................................
+Projekt neve: househub
+Technológia: ASP.NET Core MVC + Entity Framework Core + MariaDB + Identity
+
+====================================================
+OLDAL 1 - BEVEZETÉS, PROBLÉMAFELVETÉS, CÉLKITŰZÉS
+====================================================
+
+A househub projekt egy modern, webalapú ingatlanhirdetési rendszer, amelynek célja, hogy egyszerű, átlátható és biztonságos felületet biztosítson ingatlanok közzétételéhez, böngészéséhez és adminisztrációjához. A fejlesztés központi problémája az volt, hogy egy valós, gyakorlati szempontból is értelmezhető rendszert hozzunk létre, amelyben egyszerre jelennek meg a backend logika, az adatkezelés, a jogosultságkezelés, valamint a felhasználóbarát frontend elemek.
+
+A rendszer célcsoportja többféle felhasználói kör: ingatlant kereső látogatók, hirdetést feladó tulajdonosok, hirdetéseket kezelő ingatlanosok és a teljes működést felügyelő adminisztrátorok. A projekt egyik erőssége, hogy nem egyetlen statikus szerepkörrel dolgozik, hanem dinamikusan kezeli a felhasználói státuszokat, így a felhasználó szerepe és lehetőségei a rendszerben változtathatók.
+
+A fejlesztés során kiemelt cél volt:
+- egy tiszta MVC architektúra kialakítása,
+- stabil adatbázis-kapcsolat megvalósítása MariaDB-vel,
+- biztonságos bejelentkezés és regisztráció Identity alapon,
+- részletes ingatlan-adatmodell létrehozása több képes hirdetéssel,
+- jogosultsági szintek bevezetése,
+- adminisztrációs felület kialakítása,
+- valamint modern, vizuálisan kellemes felhasználói felület biztosítása.
+
+A vizsgamunka szempontjából a projekt azért különösen releváns, mert több komplex területet összeköt:
+1. objektumorientált backend fejlesztés,
+2. adatbázis-tervezés és relációkezelés,
+3. webes autentikáció és authorization,
+4. fájlfeltöltés és fájlrendszer-kezelés,
+5. UI/UX gyakorlati kivitelezés,
+6. hibakezelés és karbantarthatóság.
+
+Ez a dokumentum részletesen bemutatja a rendszer felépítését, működését, komponenseit, biztonsági aspektusait, tesztelését és továbbfejlesztési lehetőségeit.
+
+====================================================
+OLDAL 2 - TECHNOLÓGIAI HÁTTÉR ÉS ESZKÖZKÉSZLET
+====================================================
+
+A househub alkalmazás .NET 8 platformra épül, Web SDK használatával. A választott technológiai stack korszerű, széles körben támogatott, iparági szinten is használható:
+
+1. ASP.NET Core MVC
+Az alkalmazás fő kerete az ASP.NET Core MVC. Az MVC minta három részre választja a logikát:
+- Model: üzleti adatok és validáció,
+- View: felhasználói felület megjelenítése,
+- Controller: kérések kezelése és folyamatvezérlés.
+
+2. Entity Framework Core 8
+Az adatelérést EF Core biztosítja, amely objektumorientáltan kezeli a relációs adatbázist. A kódban a DbContext és a modellek relációi jól elkülönítik az adatkezelést az üzleti logikától.
+
+3. MariaDB + Pomelo provider
+Az adatbázis MariaDB, amelyhez a Pomelo.EntityFrameworkCore.MySql provider biztosít kompatibilitást. Ez jó választás nyílt forráskódú, költséghatékony rendszerekhez.
+
+4. ASP.NET Core Identity
+A bejelentkezés, regisztráció, jelszókezelés és szerepkörkezelés Identity alapon működik. A rendszer a default Identity folyamatokat kiterjeszti saját ApplicationUser osztállyal.
+
+5. Frontend
+A felület Bootstrapre épül, a projektben további egyedi CSS stílusok biztosítják a modernebb megjelenést: lekerekített gombok, gradient háttér, árnyékolás, élőbb színpaletta.
+
+6. Telemetria
+A projekt tartalmazza az Application Insights csomagot is, ami alapot ad későbbi monitorozásra.
+
+Fő NuGet csomagok:
+- Microsoft.EntityFrameworkCore
+- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+- Microsoft.AspNetCore.Identity.UI
+- Pomelo.EntityFrameworkCore.MySql
+- Microsoft.ApplicationInsights.AspNetCore
+
+A választott stack előnye, hogy könnyen bővíthető, jól dokumentált, és vizsgamunka után akár éles webes termékké is fejleszthető.
+
+====================================================
+OLDAL 3 - RENDSZERARCHITEKTÚRA (MVC FELBONTÁS)
+====================================================
+
+A househub szerkezetileg jól elkülönített mappastruktúrával dolgozik. A projekt gyökérmappájában található:
+- Controllers
+- Models
+- Views
+- Data
+- Areas/Identity
+- wwwroot
+- Program.cs
+- appsettings.json
+
+1. Controllers
+Itt található az alkalmazás kéréskezelő logikája:
+- HomeController: főoldal és statikus oldalak,
+- PropertyController: hirdetések CRUD és keresés,
+- UserProfileController: felhasználótípus-váltás,
+- SettingsController: fiókbeállítások (email, telefon, jelszó, user type),
+- AdminController: admin felhasználó- és hirdetéskezelés.
+
+2. Models
+A domain modellek és enumok itt helyezkednek el:
+- ApplicationUser (Identity bővítés),
+- Property és PropertyImage,
+- AccountSettingsViewModel,
+- ErrorViewModel.
+
+3. Data réteg
+Az ApplicationDbContext tartalmazza az adatbázis táblákat és relációkat, a DbSeeder pedig induláskor előkészíti a szerepköröket és az admin fiókot.
+
+4. Views
+A Razor nézetek biztosítják a felhasználói felületet:
+- Home, Property, Admin, UserProfile, Settings, Shared.
+
+5. Identity Area
+Az Areas/Identity oldalakból érkeznek az alap Login/Register/Logout folyamatok.
+
+6. Statikus állományok
+wwwroot alatt található:
+- CSS,
+- JavaScript,
+- képfájlok,
+- hirdetésképek mappastruktúrája.
+
+Összességében a projekt nem monolit kódtömbként, hanem funkcionális egységekre bontva épül fel. Ez vizsgamunka szempontból különösen előnyös, mert jól demonstrálható benne a tiszta architekturális gondolkodás.
+
+====================================================
+OLDAL 4 - INDÍTÁSI FOLYAMAT, KONFIGURÁCIÓ, MIDDLEWARE
+====================================================
+
+A rendszer indulási pontja a Program.cs. Itt történik az alkalmazás szolgáltatásainak regisztrációja és a middleware pipeline összeállítása.
+
+1. Konfiguráció betöltése
+A DefaultConnection connection string az appsettings.json-ból kerül beolvasásra. Ha hiányzik, az alkalmazás explicit hibával leáll. Ez fontos, mert így induláskor azonnal látható a konfigurációs probléma.
+
+2. DbContext regisztráció
+Az ApplicationDbContext UseMySql beállítással MariaDB-hez csatlakozik. A ServerVersion.AutoDetect automatikusan felismeri az adatbázis verzióját.
+
+3. Identity beállítás
+Az alkalmazás AddDefaultIdentity<ApplicationUser> konfigurációt használ:
+- egyszerűsített jelszó policy (fejlesztési kényelmi célból),
+- role támogatás AddRoles<IdentityRole>(),
+- EF store kapcsolat AddEntityFrameworkStores<ApplicationDbContext>().
+
+4. MVC és Razor Pages
+Egyszerre regisztrált:
+- AddControllersWithViews(),
+- AddRazorPages().
+Ez azért kell, mert az app MVC controllereket és Identity Razor Page-eket is használ.
+
+5. Adatbázis inicializáció induláskor
+Az app induláskor scope-ot nyit, majd:
+- EnsureCreated() hívással létrehozza a hiányzó táblákat,
+- DbSeeder.SeedAsync() metódussal szerepköröket és admin usert készít.
+
+6. Middleware pipeline
+A sorrend:
+- UseExceptionHandler / UseHsts (éles környezetben),
+- UseHttpsRedirection,
+- UseStaticFiles,
+- UseRouting,
+- UseAuthentication,
+- UseAuthorization,
+- MapControllerRoute,
+- MapRazorPages.
+
+Ez a sorrend kritikus: ha az authentication/authorization rossz helyen lenne, a védett oldalak nem működnének megfelelően.
+
+====================================================
+OLDAL 5 - ADATBÁZIS MODELL ÉS RELÁCIÓS TERVEZÉS
+====================================================
+
+A projekt adatmodellje az ApplicationDbContext-ben és a model osztályokban definiált.
+
+Fő táblák:
+- AspNetUsers
+- AspNetRoles
+- AspNetUserRoles
+- AspNetUserClaims / AspNetUserLogins stb. (Identity belső táblák)
+- Properties
+- PropertyImages
+
+Relációk:
+1. Property -> PropertyImage (1:N)
+Egy hirdetéshez több kép tartozhat. A kapcsolat cascade törléssel van beállítva, tehát ha egy Property törlődik, a hozzá tartozó PropertyImages rekordok is törlődnek.
+
+2. Property -> ApplicationUser (N:1)
+Minden hirdetésnek van tulajdonosa (TulajdonosUserId). DeleteBehavior.Restrict szabály védi az adatkonzisztenciát: ne töröljünk véletlenül olyan felhasználót, akihez hirdetés kapcsolódik.
+
+3. Identity relációk
+A felhasználó és szerepkör közti relációt az Identity kezeli. A projekt ezt kiegészíti saját UserType mezővel.
+
+Adatminőségi szabályok:
+- cím kötelező, max 200 karakter,
+- leírás max 2000 karakter,
+- alapterület és ár tartomány-validációval ellátott,
+- képútvonal max 255 karakter.
+
+Az adatmodell egyensúlyt tart részletes adatszerkezet és egyszerű implementáció között. Vizsgamunkában ez fontos, mert mutatja, hogy a rendszer később skálázható, de jelenleg is jól tesztelhető és áttekinthető.
+
+====================================================
+OLDAL 6 - FELHASZNÁLÓKEZELÉS ÉS IDENTITY KITERJESZTÉS
+====================================================
+
+A bejelentkezési és jogosultsági rendszer ASP.NET Core Identity-ra épül, amelyet a projekt saját igényekhez igazít.
+
+1. ApplicationUser
+Az ApplicationUser osztály az IdentityUser-ből származik, és egy extra mezőt tartalmaz:
+- UserType (Tulajdonos, Ingatlanos, Admin).
+
+Ez a mező üzleti logikai gyorsításra szolgál, mert egyértelműen tárolja a felhasználó „üzleti” típusát, miközben az Identity role-rendszer a tényleges jogosultságokat kezeli.
+
+2. Szerepkörök
+A DbSeeder induláskor létrehozza:
+- Admin
+- Ingatlanos
+- Tulajdonos
+
+3. Alap admin user
+Seedelt admin:
+- email: admin@househub.local
+- jelszó: Admin123
+
+Ez a fejlesztői/test környezet gyors elérését biztosítja.
+
+4. Identity UI
+Regisztráció, login, logout alapfolyamatok a beépített Identity oldalakról érkeznek (Areas/Identity). A projekt ezekre támaszkodik, és a saját menüből linkeli őket.
+
+5. Biztonsági háttér
+Az Identity:
+- hash-eli a jelszavakat,
+- kezeli a session/cookie mechanizmust,
+- biztosítja a CSRF védelmet antiforgery tokenekkel.
+
+A megoldás iparági standardokra épül, nem saját készítésű, sebezhető loginrendszerre, ami vizsgamunka és valós fejlesztés szempontjából is helyes döntés.
+
+====================================================
+OLDAL 7 - JOGOSULTSÁGKEZELÉS ÉS AUTHORIZATION
+====================================================
+
+A househub alkalmazás több szinten védi a funkciókat:
+
+1. [Authorize] attribútum
+Azok az oldalak, ahol személyes adat vagy módosítás történik, csak belépve érhetők el:
+- Property/Create
+- Property/Edit
+- Property/Delete
+- Property/MyProperties
+- UserProfile/EditRole
+- Settings/Index
+
+2. Role alapú védelem
+Az AdminController osztály szintű védelemmel működik:
+[Authorize(Roles = "Admin")]
+Ez garantálja, hogy admin menedzsmentet csak admin felhasználó nyithat meg.
+
+3. Tulajdonosi ellenőrzés
+A PropertyController nem csak role alapján véd:
+- szerkesztés/törlés előtt ellenőrzi, hogy a bejelentkezett user tulajdonosa-e az adott hirdetésnek,
+- vagy admin-e.
+
+4. Képtörlés külön védelem
+A DeleteImage endpoint külön jogosultsági logikával fut:
+- csak admin vagy hirdetéstulajdonos törölheti a képet.
+
+5. Menüszintű láthatóság
+A layout dinamikusan mutat menüpontokat:
+- bejelentkezve látszik „Saját hirdetéseim” és „Felhasználó típus”,
+- adminnak plusz „Admin” menü.
+
+Ez nem helyettesíti a backend védelmet, de UX szinten javítja a használhatóságot.
+
+6. Elvárt és valós biztonság
+A projekt helyesen választja szét:
+- frontenden csak elrejtés,
+- backend oldalon tényleges tiltás (Forbid, Challenge, NotFound).
+
+Ez a gyakorlatban az egyik legfontosabb biztonsági alapelv.
+
+====================================================
+OLDAL 8 - INGATLAN ADATMODELL ÉS ÜZLETI LOGIKA
+====================================================
+
+A Property modell a rendszer üzleti magja. Célja, hogy a legfontosabb ingatlanadatokat strukturáltan tárolja.
+
+Fő mezők:
+- Category (Lakás/Ház/Telek/Iroda),
+- Cim,
+- Alapterulet,
+- Szobaszam,
+- Ar,
+- ListingType (Eladó/Bérlés),
+- Leiras,
+- Allapot,
+- Emelet,
+- EpitesEve,
+- Futestipus,
+- Letrehozva,
+- TulajdonosUserId.
+
+A modellben szereplő enumok előnye:
+- egységes adatértékek,
+- könnyebb szűrés/rendezés,
+- kevesebb hibás, szabad szöveges bemenet.
+
+Validáció:
+- kötelező mezők (pl. cím, ár),
+- hosszkorlátok (pl. leírás),
+- numerikus tartományok (pl. alapterület).
+
+Kapcsolódó képek:
+A PropertyImage külön entitásként tárolódik. Így egy hirdetés több képet kaphat, ami közelít a valós üzleti igényhez.
+
+Üzleti működés:
+- létrehozáskor a rendszer rögzíti a hirdetés tulajdonosát és létrehozási idejét,
+- szerkesztéskor csak jogosult user módosíthat,
+- törlésnél biztosított a relációs konzisztencia.
+
+A modell megfelelően részletes ahhoz, hogy ingatlanportál jellegű rendszert adjon, de nem túlterhelt. Ez jó vizsgamunka-szintű tervezés.
+
+====================================================
+OLDAL 9 - PROPERTY CONTROLLER: LISTÁZÁS, SZŰRÉS, RENDEZÉS
+====================================================
+
+A PropertyController egyik legfontosabb funkciója a hirdetéslista és keresési rendszer.
+
+Elérhető szűrők:
+- kulcsszó (cím + leírás),
+- kategória,
+- minimum/maximum alapterület,
+- minimum/maximum ár,
+- szobaszám,
+- hirdetéstípus (eladó/kiadó).
+
+Rendezési opciók:
+- ár szerint növekvő/csökkenő,
+- alapterület szerint növekvő/csökkenő,
+- alapértelmezésben legfrissebb hirdetések.
+
+Technikai megoldás:
+Az akció IQueryable alapon építi a lekérdezést, így:
+- csak a végén fut le a SQL,
+- a szűrők kombinálhatók,
+- a lekérdezés hatékony marad.
+
+Miért fontos ez?
+Egy ingatlanoldal használhatósága döntően a keresésen múlik. A felhasználó általában sok adat között akar gyorsan releváns találatot kapni. A rendszer ezt támogatja.
+
+Részletek nézet:
+A Details akció:
+- betölti a tulajdonos usert és a képeket,
+- kiszámolja, hogy a néző szerkeszthet-e (admin vagy tulaj).
+
+Ez a ViewBag.CanEdit mezőn keresztül jelenik meg a nézetben, és javítja a felület logikáját: csak az lát szerkesztési lehetőséget, aki valóban jogosult.
+
+====================================================
+OLDAL 10 - PROPERTY CONTROLLER: LÉTREHOZÁS, KÉPFELTÖLTÉS
+====================================================
+
+A hirdetésfeladás folyamata több lépéses és adatbiztonsági szempontból is fontos.
+
+1. Belépés ellenőrzése
+A Create GET/POST [Authorize] védelem alatt van, tehát csak hitelesített user adhat fel hirdetést.
+
+2. Modellvalidáció
+A POST akció ModelState alapján ellenőrzi a bejövő adatokat. Hibás adatok esetén visszaadja az űrlapot.
+
+3. Tulajdonosi kapcsolat
+A rendszer a bejelentkezett user azonosítóját menti a TulajdonosUserId mezőbe, így minden hirdetéshez egyértelműen hozzárendelhető a létrehozó személy.
+
+4. Többképes feltöltés
+A rendszer List<IFormFile> képlistát fogad.
+Feltételek:
+- maximum 10 kép/hirdetés,
+- üres/null fájlok kihagyása.
+
+5. Fizikai fájlmentés
+A képek a wwwroot/images/properties/{propertyId}/ mappába kerülnek.
+Az egyedi fájlnév GUID alapú, így a névütközés kockázata minimális.
+
+6. Adatbázis-nyilvántartás
+A fájl relatív útvonala a PropertyImages táblába mentődik.
+Ez biztosítja, hogy a frontend img src-ként könnyen használja.
+
+7. Eredmény
+Sikeres mentés után redirect a listára.
+
+Ez a megoldás üzleti és technikai szempontból is helyes: külön kezeli a fájlrendszerbeli és adatbázisbeli állapotot, miközben a felhasználó számára egyszerű marad.
+
+====================================================
+OLDAL 11 - PROPERTY CONTROLLER: SZERKESZTÉS, TÖRLÉS, KÉPTÖRLÉS
+====================================================
+
+A szerkesztés és törlés funkciók kritikusak, mert adatvesztést és jogosulatlan módosítást kell megelőzni.
+
+1. Edit GET
+- lekéri az entitást,
+- ellenőrzi a felhasználót,
+- tilt, ha nem admin és nem tulajdonos.
+
+2. Edit POST
+- id egyezés ellenőrzés,
+- modellvalidáció,
+- tulajdonosi/admin ellenőrzés,
+- mezők frissítése,
+- opcionálisan új képek hozzáadása,
+- mentés.
+
+Megjegyzés: a kódban javítás történt, hogy ne maradjon holtkód; az új képek feltöltése valóban lefusson.
+
+3. Delete GET + POST
+- megerősítő oldal,
+- majd tényleges törlés.
+
+4. DeleteImage
+Ez külön művelet:
+- image rekord betöltése property kapcsolattal,
+- jogosultságellenőrzés,
+- fizikai fájl törlése,
+- adatbázis rekord törlése.
+
+Ez a kettős törlés fontos, mert így nem maradnak „árva” fájlok.
+
+5. MyProperties
+Bejelentkezett user a saját hirdetéseit külön oldalon látja. Ez praktikus dashboard jellegű funkció.
+
+Összességében a PropertyController egyszerre tartalmaz:
+- publikus listázást,
+- védett CRUD műveleteket,
+- médiafájl-kezelést,
+- jogosultsági döntéseket.
+
+====================================================
+OLDAL 12 - FELHASZNÁLÓI TÍPUS KEZELÉS (USERPROFILE)
+====================================================
+
+A UserProfileController célja, hogy a felhasználó saját típusát (Tulajdonos/Ingatlanos) módosíthassa.
+
+Folyamat:
+1. GET EditRole
+- user lekérése,
+- jelenlegi UserType átadása a nézetnek.
+
+2. POST EditRole
+- user lekérése,
+- UserType mező frissítése,
+- Identity role-ok szinkronizálása.
+
+Szinkronizáció lépései:
+- először eltávolítja a usert Tulajdonos és Ingatlanos szerepkörből,
+- majd a kiválasztott típus alapján visszaadja az egyiket.
+
+Miért jó ez a megoldás?
+- nem marad duplikált szerepkör,
+- egyszerű és követhető logika,
+- üzletileg egyértelmű, hogy a user éppen melyik működési módban dolgozik.
+
+Egyensúly az adatmodellben:
+- UserType: gyors üzleti állapot,
+- Roles: jogosultsági végrehajtás.
+
+Kiterjeszthetőség:
+Később könnyen bevezethető például:
+- hitelesített ingatlanos státusz,
+- prémium tulajdonosi csomag,
+- regionális vagy céges role-ok.
+
+A controller jól demonstrálja, hogyan kapcsolódik össze az üzleti és biztonsági réteg.
+
+====================================================
+OLDAL 13 - BEÁLLÍTÁSOK MODUL (SETTINGS) RÉSZLETESEN
+====================================================
+
+A SettingsController a projekt egyik fejlettebb része, mert egyszerre kezeli:
+- profiladat frissítést,
+- user típus módosítást,
+- jelszócserét,
+- role-szinkront,
+- session frissítést.
+
+GET /Settings:
+- betölti az aktuális usert,
+- AccountSettingsViewModel-be tölti email/telefon/usertype mezőket,
+- visszaadja az űrlapot.
+
+POST /Settings:
+1. UserType validáció:
+csak Tulajdonos és Ingatlanos engedélyezett.
+
+2. Jelszócsere szándék felismerése:
+ha bármelyik jelszómező kitöltött, akkor minden jelszómező kötelező.
+
+3. Email frissítés:
+- SetEmailAsync,
+- SetUserNameAsync (szinkronban tartás).
+
+4. Telefonszám frissítés:
+SetPhoneNumberAsync.
+
+5. UserType mentés:
+UpdateAsync.
+
+6. Role-szinkron:
+régi role-ok eltávolítása, új hozzáadása.
+
+7. Opcionális jelszócsere:
+ChangePasswordAsync.
+
+8. Sign-in frissítés:
+RefreshSignInAsync.
+
+9. Visszajelzés:
+TempData üzenet.
+
+Ez a modul kiváló példa arra, hogyan lehet egyetlen oldalon több profilfunkciót biztonságosan és tranzakciós szemlélettel kezelni.
+
+====================================================
+OLDAL 14 - ADMIN MODUL ÉS RENDSZERFELÜGYELET
+====================================================
+
+Az AdminController csak admin role-lal érhető el, így a rendszerüzemeltetési funkciók elkülönülnek a normál felhasználói műveletektől.
+
+Fő funkciók:
+1. Felhasználók listázása
+- az összes felhasználó lekérdezése,
+- minden userhez role lista betöltése,
+- saját UserType és Identity role-ok együtt megjeleníthetők.
+
+2. Hirdetések listázása admin nézetben
+- minden ingatlan elérhető,
+- tulajdonos adatokkal együtt.
+
+3. Hirdetés törlése admin felületről
+- megerősítés,
+- majd törlés.
+
+Fontos megjegyzés:
+Admin törlésnél jelenleg az ingatlan törlődik; a kapcsolódó képek fájlrendszer-szintű takarítása későbbi fejlesztési pontként kezelhető (bár a relációs képrekordok cascade miatt törlődnek).
+
+AdminUserListItemViewModel:
+Egyszerű, célorientált viewmodel:
+- UserId,
+- Email,
+- UserName,
+- UserType,
+- Roles.
+
+Ez tiszta szeparációt ad a nézeti adattovábbításhoz.
+
+A modul vizsgamunka szempontból igazolja:
+- role alapú hozzáférésvédelmet,
+- többtáblás összesített lekérdezést,
+- admin workflow kialakítást.
+
+====================================================
+OLDAL 15 - FELHASZNÁLÓI FELÜLET, NAVIGÁCIÓ, UX
+====================================================
+
+A projekt UI-ja Bootstrap alapú, de egyedi CSS-sel modernizált.
+
+Navigáció:
+- Főoldal,
+- Adatvédelem,
+- Ingatlanok,
+- belépve: Saját hirdetéseim, Felhasználó típus,
+- adminnak: Admin lenyíló menü.
+
+LoginPartial dinamikus:
+- kijelentkezett: Regisztráció + Bejelentkezés,
+- bejelentkezett: Beállítások + név + Kijelentkezés.
+
+Modern stíluselemek:
+- lekerekített, árnyékos gombok,
+- színes gradient háttér,
+- kártyaszerű panelek,
+- hover/fókusz animáció.
+
+A vizuális modernizáció célja:
+- jobb első benyomás,
+- interaktívabb kezelhetőség,
+- világosabb hierarchia.
+
+Reszponzivitás:
+Bootstrap grid és navbar segítségével mobilon is használható.
+
+UX szempont:
+A menüben csak releváns funkciók jelennek meg. Ez csökkenti a felhasználói bizonytalanságot.
+
+Későbbi UX fejlesztés:
+- értesítési sávok egységesítése,
+- szűrőpanelek finomítása,
+- üres állapotok (empty state) vizuális kezelése.
+
+====================================================
+OLDAL 16 - BIZTONSÁGI SZEMPONTOK
+====================================================
+
+A projekt több alapvető biztonsági gyakorlatot alkalmaz.
+
+1. Jelszótárolás
+Az Identity hash-elve tárolja a jelszót az AspNetUsers táblában.
+
+2. CSRF védelem
+A POST akciók [ValidateAntiForgeryToken] attribútummal védettek.
+
+3. Jogosultságok
+A védett műveletek backend oldalon ellenőrzik:
+- bejelentkezést,
+- role-t,
+- tulajdonjogot.
+
+4. HTTPS használat
+UseHttpsRedirection konfigurálva van.
+
+5. Kockázatok és mitigációk
+- Fájlfeltöltésnél jelenleg nincs teljes tartalomszintű fájltípus-validáció.
+  Javaslat: MIME és kiterjesztés ellenőrzés, fájlméret-limit, képfeldolgozó pipeline.
+- Brute force védelem jelenleg alap Identity beállításokkal működik.
+  Javaslat: lockout policy szigorítása.
+- Képek törlésekor jó gyakorlat a path kezelés, de további hardening is lehetséges.
+
+6. Audit és naplózás
+Induláskori adatbázishibák logolva vannak app.Logger-rel.
+Javaslat: üzleti auditnapló (ki mit törölt/módosított).
+
+A biztonsági alapok rendben vannak vizsgamunka szinthez, és jó kiindulást adnak komolyabb élesítéshez.
+
+====================================================
+OLDAL 17 - ADATÁRAMLÁS ÉS FELHASZNÁLÓI FOLYAMATOK
+====================================================
+
+Tipikus felhasználói útvonalak:
+
+1. Nyilvános böngészés
+Látogató megnyitja a főoldalt, ahol a 6 legfrissebb hirdetés jelenik meg.
+Továbbmegy az Ingatlanok listára, szűr és rendez.
+
+2. Regisztráció és login
+Látogató regisztrál az Identity oldalon.
+Belépés után új menüpontok válnak láthatóvá.
+
+3. Hirdetésfeladás
+Belépett user a Create oldalon kitölti az adatokat, feltölt képeket, ment.
+A rendszer létrehozza a hirdetést és hozzákapcsolja a userhez.
+
+4. Saját hirdetések kezelése
+User a MyProperties oldalon látja saját tételeit.
+Szerkeszt, képet töröl, vagy hirdetést töröl.
+
+5. Profil és beállítások
+User a Settings oldalon módosítja emailjét, telefonját, típusát, jelszavát.
+A rendszer frissíti a role-t és a bejelentkezési sütit.
+
+6. Admin workflow
+Admin belép, listázza a felhasználókat és a hirdetéseket, szükség esetén töröl.
+
+Az adatáramlás minden ponton kontrollált:
+- validáció,
+- jogosultságellenőrzés,
+- perzisztencia,
+- visszajelzés.
+
+====================================================
+OLDAL 18 - TESZTELÉS, VERIFIKÁCIÓ, HIBAKEZELÉS
+====================================================
+
+A projekt validálása több szinten történt:
+
+1. Build ellenőrzés
+dotnet build futtatással a fordítás ellenőrizhető.
+A fejlesztés során warningok javítva lettek, végül 0 warning, 0 error állapot elérve.
+
+2. Funkcionális ellenőrzés
+Tesztelt folyamatok:
+- regisztráció,
+- belépés,
+- settings mentés,
+- jelszócsere,
+- kijelentkezés,
+- új jelszós belépés.
+
+3. Jogosultsági teszt
+Ellenőrizhető, hogy:
+- védett oldalak login nélkül login oldalra irányítanak,
+- admin oldalak csak adminnak nyílnak,
+- idegen hirdetés módosítása tiltott.
+
+4. Hibaágak
+A controller logika kezel:
+- NotFound,
+- Forbid,
+- Challenge,
+- BadRequest.
+
+5. Lehetséges további tesztek
+- unit teszt üzleti metódusokra,
+- integration teszt endpointokra,
+- UI teszt Playwright/Selenium alapon.
+
+6. Kockázatkezelés
+Induláskori adatbázishibát a rendszer naplózza. Ez jó alap, de érdemes központosított logelést bevezetni.
+
+A tesztelési képesség erőssége, hogy a projekt moduláris és jól elkülönített, így a későbbi automatizálás könnyen megvalósítható.
+
+====================================================
+OLDAL 19 - TELEPÍTÉS, FUTTATÁS, ÜZEMELTETÉSI SZEMPONTOK
+====================================================
+
+Lokális futtatás menete:
+1. .NET 8 SDK telepítés.
+2. MariaDB futtatás.
+3. appsettings.json connection string beállítás.
+4. dotnet restore
+5. dotnet run --launch-profile https
+
+Induláskor:
+- EnsureCreated létrehozza a táblákat,
+- DbSeeder előkészíti role-okat és admin felhasználót.
+
+Visual Studio futtatás:
+- Startup project: househub
+- profil: https vagy IIS Express
+- F5.
+
+VS Code futtatás:
+- C# extension,
+- terminálból dotnet run.
+
+Környezetek:
+- Development: részletesebb hibainformáció,
+- Production: hibaoldal + HSTS.
+
+Üzemeltetési javaslat:
+- secrets kezelése User Secrets vagy környezeti változókon,
+- éles adatbázis hitelesítés megerősítése,
+- reverse proxy (Nginx/IIS) mögötti üzemeltetés.
+
+Skálázás:
+- jelenlegi struktúra alkalmas későbbi API bontásra,
+- statikus képek esetén CDN-integráció bevezethető,
+- cache stratégia implementálható listákhoz.
+
+====================================================
+OLDAL 20 - FEJLESZTÉSI DÖNTÉSEK, ERŐSSÉGEK, KOMPROMISSZUMOK
+====================================================
+
+Erősségek:
+1. Tiszta MVC struktúra.
+2. Stabil Identity integráció.
+3. Valós üzleti igényeket lefedő ingatlanmodell.
+4. Többképes hirdetéskezelés.
+5. Role és usertype együtt kezelése.
+6. Admin workflow.
+7. Modernizált UI.
+
+Kompromisszumok:
+1. EnsureCreated használat:
+gyors fejlesztéshez ideális, de élesben migrációs stratégia jobb.
+2. Egyszerűsített jelszó policy:
+fejlesztésnél kényelmes, élesben szigorítani kell.
+3. Képfeltöltés validáció:
+alap működés kész, de hardening további lépéseket igényel.
+
+Tanulság:
+Vizsgamunka szintjén a projekt jó egyensúlyt tart funkciógazdagság és kivitelezhetőség között. A rendszer nem csak demonstrációs célra alkalmas, hanem valós termék alapját képezheti.
+
+====================================================
+OLDAL 21 - TOVÁBBFEJLESZTÉSI JAVASLATOK
+====================================================
+
+1. Migrációs stratégia bevezetése
+EnsureCreated helyett EF Core migrations használata, verziózott sémával.
+
+2. Keresés bővítése
+- város/kerület mezők,
+- térképes szűrés,
+- mentett keresések.
+
+3. Képfeldolgozás
+- thumbnail generálás,
+- EXIF tisztítás,
+- webp konverzió.
+
+4. Üzenetküldés
+Érdeklődő és hirdető közötti üzenetmodul.
+
+5. Kedvencek
+Felhasználó mentheti kedvenc hirdetéseit.
+
+6. Moderáció
+Admin jóváhagyási workflow hirdetés publikálás előtt.
+
+7. Naplózás
+Részletes audit trail: ki mit módosított, mikor.
+
+8. API réteg
+REST API és mobil kliens integráció.
+
+9. Teljesítmény
+- cache,
+- lapozás minden listán,
+- indexelés adatbázisban.
+
+10. Minőségbiztosítás
+- unit/integration/UI automatizált tesztek,
+- CI pipeline.
+
+Ezekkel a bővítésekkel a househub oktatási projektből piacképes rendszerré fejleszthető.
+
+====================================================
+OLDAL 22 - ÖSSZEFOGLALÁS (ZÁRÓ FEJEZET)
+====================================================
+
+A househub vizsgamunka egy teljes értékű, többmodulos webalkalmazás, amely bemutatja a modern .NET alapú fejlesztés fő területeit. A projekt nem egyszerű CRUD mintapélda, hanem olyan rendszer, amely:
+- több szereplős üzleti modellt kezel,
+- biztonságos hitelesítést és jogosultságot alkalmaz,
+- komplex adatszerkezetet használ,
+- fájlfeltöltést és média-kezelést valósít meg,
+- adminisztrációs felületet biztosít,
+- és modern megjelenést kínál.
+
+Szakmai szempontból a munka erősségei:
+1. architekturális tisztaság,
+2. valós use-case lefedettség,
+3. gyakorlatias technológiai döntések,
+4. továbbfejleszthető alapok.
+
+Pedagógiai szempontból a projekt jól alkalmas bemutatni:
+- objektumorientált gondolkodást,
+- rétegezett alkalmazásfejlesztést,
+- adatbázis és alkalmazáslogika együttműködését,
+- biztonságtudatos webfejlesztési alapokat.
+
+A vizsgán javasolt hangsúlyozni:
+- miért történt Identity választás,
+- hogyan biztosított a jogosultság és tulajdonosi kontroll,
+- hogyan működik a hirdetés + képek teljes életciklusa,
+- milyen irányokba bővíthető a rendszer.
+
+Végkövetkeztetés:
+A househub projekt sikeresen teljesíti egy komplex vizsgamunka követelményeit, és szakmailag megalapozott kiindulópontot jelent további fejlesztésekhez.
+
+====================================================
+MELLÉKLET A - AJÁNLOTT BEMUTATÁSI FORGATÓKÖNYV VIZSGÁRA
+====================================================
+
+1. Indítás és technológiai áttekintés (2 perc)
+2. Adatmodell és relációk (3 perc)
+3. Regisztráció/login bemutatása (2 perc)
+4. Hirdetés létrehozása képekkel (3 perc)
+5. Saját hirdetés szerkesztése, képtörlés (3 perc)
+6. Settings modul és jelszócsere (3 perc)
+7. Admin felület bemutatása (2 perc)
+8. Biztonság és fejlesztési javaslatok (2 perc)
+
+Teljes javasolt prezentációs idő: 20 perc.
+
+====================================================
+MELLÉKLET B - FONTOSABB FÁJLOK ÉS FELELŐSSÉGEK
+====================================================
+
+Program.cs
+- szolgáltatásregisztráció,
+- middleware pipeline,
+- seed futtatás.
+
+Data/ApplicationDbContext.cs
+- DbSet-ek,
+- relációk,
+- törlési szabályok.
+
+Data/DbSeeder.cs
+- role-ok,
+- admin user létrehozása.
+
+Controllers/PropertyController.cs
+- listázás, keresés, CRUD, képfeltöltés.
+
+Controllers/SettingsController.cs
+- profilfrissítés, jelszócsere, role szinkron.
+
+Controllers/AdminController.cs
+- admin menedzsment.
+
+Models/Property.cs
+- domain mezők, enumok, validáció.
+
+Models/ApplicationUser.cs
+- Identity user kiterjesztés (UserType).
+
+Views/Shared/_Layout.cshtml
+- dinamikus navigáció és menürendszer.
+
+Views/Shared/_LoginPartial.cshtml
+- login állapotfüggő menüpontok.
+
+====================================================
+MELLÉKLET C - ÖNÉRTÉKELŐ JEGYZET (PÉLDA)
+====================================================
+
+A projekt készítése során a legnagyobb kihívás a többféle jogosultsági logika és a hirdetés-kép életciklus összehangolása volt. A fejlesztés végére sikerült olyan stabil, tesztelhető és bővíthető rendszert készíteni, amely technikai és vizsgakövetelmény oldalon is megfelelő.
+
+További célom a következő félévben:
+- automatizált tesztek beépítése,
+- migration-alapú adatbázisverziózás,
+- fejlettebb keresés és lapozás,
+- konténeres (Docker) futtatás bevezetése.
+
+Ezzel a dokumentum lezárul.
+
+====================================================
+OLDAL 23 - RÉSZLETES USE CASE LEÍRÁSOK
+====================================================
+
+Ebben a fejezetben a legfontosabb felhasználói eseteket részletesen, lépésről lépésre mutatom be.
+
+USE CASE 1 - Látogató ingatlanokat keres
+Szereplő: nem bejelentkezett látogató.
+Előfeltétel: az alkalmazás elindult, vannak hirdetések.
+Lépések:
+1. A látogató megnyitja a főoldalt.
+2. Megtekinti a legfrissebb 6 hirdetést.
+3. Az „Ingatlanok” menüpontra kattint.
+4. Kulcsszót ad meg, majd ár szerint szűr.
+5. Találatlistát kap és kiválaszt egy hirdetést.
+6. Megnyitja a részleteket és képgalériát.
+Utófeltétel: nincs adatváltozás, csak olvasás.
+
+USE CASE 2 - Új felhasználó regisztrál
+Szereplő: látogató.
+Lépések:
+1. „Regisztráció” menüpontra kattint.
+2. Megad emailt és jelszót.
+3. Rendszer validálja az adatokat.
+4. Sikeres regisztráció után bejelentkezett állapotba kerül.
+Utófeltétel: új rekord az AspNetUsers táblában.
+
+USE CASE 3 - Felhasználó hirdetést ad fel
+Szereplő: bejelentkezett felhasználó.
+Lépések:
+1. „Új hirdetés” oldal megnyitása.
+2. Kötelező mezők kitöltése.
+3. Több kép feltöltése.
+4. Mentés.
+5. Rendszer létrehozza a Property rekordot.
+6. Képeket fájlrendszerbe menti és PropertyImages táblába rögzíti.
+Utófeltétel: új hirdetés látható listában.
+
+USE CASE 4 - Felhasználó módosítja a profilját
+Szereplő: bejelentkezett user.
+Lépések:
+1. Beállítások oldal megnyitása.
+2. Email/telefon módosítása.
+3. Szükség esetén jelszócsere.
+4. Mentés.
+Utófeltétel: user rekord frissül, role-szinkron lefut.
+
+USE CASE 5 - Admin felhasználót ellenőriz
+Szereplő: admin.
+Lépések:
+1. Admin menü megnyitása.
+2. Felhasználók lista megtekintése role adatokkal.
+3. Hirdetések lista ellenőrzése.
+4. Szükség esetén törlés.
+Utófeltétel: admin kontrollált rendszerfelügyeletet végez.
+
+Ez a use case gyűjtemény jól mutatja, hogy a rendszerben különböző hozzáférési szintek és folyamatok léteznek, mégis konzisztens üzleti logikával.
+
+====================================================
+OLDAL 24 - SZEKVENCIÁLIS MŰKÖDÉS LEÍRÁSA (FOLYAMATLOGIKA)
+====================================================
+
+Ebben a fejezetben a háttérfolyamatok sorrendjét mutatom be, mintha szekvenciadiagramot szövegesen értelmeznénk.
+
+1. Login kérés szekvenciája
+- Felhasználó elküldi a login űrlapot.
+- Identity PageModel feldolgozza.
+- UserManager ellenőrzi a usert.
+- SignInManager létrehozza az auth cookie-t.
+- Böngésző eltárolja sütit.
+- Következő kérésben User principal felépül.
+
+2. Hirdetés létrehozás szekvenciája
+- Browser POST /Property/Create.
+- PropertyController validál.
+- UserManager visszaadja aktuális usert.
+- Controller létrehozza Property entitást.
+- EF SaveChanges: INSERT Properties.
+- Képek ciklusban mentődnek lemezre.
+- EF SaveChanges: INSERT PropertyImages.
+- Redirect /Property.
+
+3. Képtörlés szekvenciája
+- Browser POST /Property/DeleteImage.
+- Controller betölti image + property kapcsolódást.
+- Jogosultságellenőrzés.
+- Fizikai fájl törlése.
+- EF DELETE PropertyImages.
+- Redirect Details oldalra.
+
+4. Settings mentés szekvenciája
+- Browser POST /Settings.
+- Controller validálja modelt.
+- Email/username update.
+- Phone update.
+- UserType update.
+- Role remove/add.
+- Opcionális ChangePassword.
+- RefreshSignIn.
+- Redirect GET /Settings + TempData.
+
+5. Admin lista szekvenciája
+- Browser GET /Admin/Users.
+- Authorize(Roles=Admin) ellenőrzés.
+- UserManager.Users lekérdezés.
+- Minden userhez GetRolesAsync.
+- ViewModel lista építés.
+- Razor View render.
+
+A szekvenciális szemlélet segít bizonyítani, hogy a rendszer működése determinisztikus, jól kontrollált és hibakezelhető.
+
+====================================================
+OLDAL 25 - VALIDÁCIÓS STRATÉGIA ÉS ADATMINŐSÉG
+====================================================
+
+A projekt több rétegben végez validációt.
+
+1. Model szintű validáció
+DataAnnotation attribútumok:
+- [Required]
+- [Range]
+- [MaxLength]
+- [EmailAddress]
+- [Phone]
+- [Compare]
+
+Ez biztosítja, hogy a kliens és szerver oldali validáció is konzisztens legyen.
+
+2. Controller szintű validáció
+SettingsController külön üzleti szabályokat ellenőriz:
+- csak két UserType engedélyezett,
+- jelszócsere mezők együtt kötelezők,
+- sikertelen Identity műveletek ModelState-be kerülnek.
+
+3. Üzleti validáció
+Tulajdonosi ellenőrzés:
+nem elég a formai adathelyesség, jogosultság is szükséges.
+
+4. Miért fontos a többrétegű validáció?
+- kliens oldali ellenőrzés gyors UX-et ad,
+- szerver oldali ellenőrzés biztonságot ad,
+- üzleti validáció ad kontextushelyes működést.
+
+5. Fejlesztési javaslat
+- központi validation helper,
+- szabálynaplózás,
+- bővített hibaüzenet-lokalizáció.
+
+A validációs stratégia bizonyítja, hogy a rendszer adatminőségre és biztonságra tervezett.
+
+====================================================
+OLDAL 26 - HIBAKEZELÉSI MINTÁK
+====================================================
+
+A rendszer többféle hibakezelési ágat használ:
+
+1. NotFound (404)
+Ha az adott ID-jű hirdetés/kép nem létezik.
+
+2. Forbid (403)
+Ha a felhasználó be van jelentkezve, de nincs jogosultsága.
+
+3. Challenge
+Ha nincs hitelesített user, login folyamatra terelés történik.
+
+4. BadRequest
+Paraméterinkonzisztencia esetén.
+
+5. Error action
+HomeController Error akció központi hibanézetet ad.
+
+6. Induláskori exception log
+Program.cs logolja a seed/init hibákat.
+
+Miért jó ez?
+- a hibaállapotok nem keverednek össze,
+- HTTP szemantikailag helyes válaszok születnek,
+- fejlesztés és hibakeresés könnyebb.
+
+Fejlesztési lehetőség:
+- globális exception middleware,
+- saját domain exception típusok,
+- felhasználóbarát hibaoldalak role és nyelv szerint.
+
+====================================================
+OLDAL 27 - KÓDMINŐSÉG, KARBANTARTHATÓSÁG, CLEAN CODE
+====================================================
+
+A projektben számos pozitív karbantarthatósági minta jelenik meg:
+
+1. Felelősségi körök elkülönítése
+Controller nem tárol statikus állapotot.
+
+2. DI használat
+Service-ek konstruktoron érkeznek, nem kézi példányosítással.
+
+3. Aszinkron adatkezelés
+EF Core műveletek többnyire async metódusokkal futnak.
+
+4. ViewModel használat
+Settings oldalon külön model segíti a tiszta adatcserét.
+
+5. Enum alapú mezők
+Könnyebb olvashatóság és kevesebb mágikus string.
+
+6. Kódszintű kommentelés
+A projektben részletes magyar kommentek találhatók, ami oktatási környezetben hasznos.
+
+Refaktor javaslatok:
+- namespace-ek egységesítése (househub és househub_P keveredése),
+- repository/service réteg bevezetése nagyobb skálához,
+- közös segédmetódusok (jogosultságellenőrzés) kiszervezése.
+
+Összességében a kód olvasható, közepes méretű csapatban jól átadható.
+
+====================================================
+OLDAL 28 - TELJESÍTMÉNY ÉS SKÁLÁZHATÓSÁG
+====================================================
+
+Jelenlegi teljesítmény szempontok:
+- IQueryable alapú dinamikus keresés,
+- lazy helyett célzott Include használat,
+- képek fizikailag fájlrendszerben.
+
+Lehetséges szűk keresztmetszetek:
+1. Nagy hirdetésszámnál lapozás hiánya.
+2. Több felhasználó esetén role-lekérdezések költsége admin listában.
+3. Nagy képfájlok tárolása helyi lemezen.
+
+Fejlesztési opciók:
+1. Pagination és limitált listák.
+2. Indexek bevezetése (ár, létrehozás, kategória mezőkön).
+3. Kép CDN vagy object storage használata.
+4. Caching népszerű lekérdezésekre.
+5. Read-model optimalizálás admin felületre.
+
+Skálázhatósági stratégia:
+- rövid táv: optimalizált SQL + pagination,
+- közép táv: rétegzett szolgáltatások,
+- hosszú táv: API + külön front-end + microservice felbontás.
+
+A jelenlegi rendszer kis-közepes terhelésre megfelelő, és jó alapot ad bővítéshez.
+
+====================================================
+OLDAL 29 - ADATVÉDELEM ÉS GDPR SZEMPONTOK
+====================================================
+
+Mivel a rendszer felhasználói adatokat kezel (email, telefonszám), GDPR szemlélet indokolt.
+
+1. Kezelt személyes adatok
+- email,
+- telefonszám,
+- bejelentkezési metadata.
+
+2. Biztonsági alapok
+- jelszó hash-elve,
+- role-alapú hozzáférés,
+- védett endpointok.
+
+3. Felhasználói jogok (javasolt bővítés)
+- profiladat export,
+- profiladat törlés,
+- adatkezelési hozzájárulás naplózása.
+
+4. Naplózás és minimalizáció
+Csak szükséges adatokat célszerű logolni.
+
+5. Adatmegőrzési politika
+Érdemes szabályozni, hogy inaktív adatok meddig maradnak.
+
+6. Adatvédelmi oldal
+A projekt tartalmaz Privacy oldalt, amely tovább bővíthető jogi szöveggel.
+
+E fejezet vizsgán fontos, mert nemcsak programozási, hanem felelős rendszertervezési gondolkodást is mutat.
+
+====================================================
+OLDAL 30 - PREZENTÁCIÓS SEGÉDLET (MIT MONDJ A VÉDÉSEN)
+====================================================
+
+Javasolt rövid, szakmai narratíva a vizsgán:
+
+1. „A househub célja egy több szereplős ingatlanplatform prototípus létrehozása volt.”
+2. „A rendszert ASP.NET Core MVC + EF Core + MariaDB stackkel építettem.”
+3. „Az autentikáció Identity alapon történik, saját ApplicationUser kiterjesztéssel.”
+4. „A fő üzleti entitás a Property, amely több képet kezel külön táblában.”
+5. „A jogosultságot háromszinten kezelem: [Authorize], role, tulajdonosi ellenőrzés.”
+6. „A beállítások modul egyszerre kezeli a profilfrissítést, role-szinkront és jelszócserét.”
+7. „Admin felületen felhasználó- és hirdetéskezelés valósul meg.”
+8. „A frontend Bootstrap alapú, egyedi modern stílusokkal.”
+9. „A rendszert build és funkcionális tesztekkel validáltam.”
+10. „A továbbfejlesztési tervben szerepel migráció, pagination, cache és API bővítés.”
+
+Lehetséges vizsgakérdés-válasz minták:
+K: Miért Identity?
+V: Biztonságos, bevált, standard autentikációs keretrendszer.
+
+K: Miért külön UserType és role?
+V: UserType üzleti gyorsjelző, role a tényleges jogosultságvégrehajtás.
+
+K: Miért fájlrendszerbe mented a képet?
+V: Egyszerű és gyors prototípusnál, később objektumtárra cserélhető.
+
+K: Hogyan véded az idegen adatok módosítását?
+V: Controller szintű tulajdonosi és role ellenőrzéssel.
+
+Ezzel a szöveges védési segédlettel magabiztos, strukturált bemutatás tartható.
+
+====================================================
+OLDAL 31 - ADATBÁZIS PÉLDAADATOK ÉS MINTA LEKÉRDEZÉSEK
+====================================================
+
+Vizsgán gyakran kérdés, hogy az adatmodell mennyire „életszerű”. Ezért hasznos bemutatni konkrét mintaadatokat és tipikus SQL gondolkodást.
+
+Minta felhasználók:
+1. admin@househub.local (Admin)
+2. kovacs.bela@mail.hu (Tulajdonos)
+3. iroda01@ingatlanpro.hu (Ingatlanos)
+
+Minta hirdetések:
+- Lakás, 56 m2, 2 szoba, 49 900 000 Ft
+- Ház, 140 m2, 4 szoba, 89 000 000 Ft
+- Iroda, 210 m2, 6 helyiség, bérleti díj
+
+Minta elemzési kérdések:
+1. Hány hirdetés van kategóriánként?
+2. Mekkora az átlagár kategóriánként?
+3. Melyik user adta fel a legtöbb hirdetést?
+4. Mely hirdetésekhez tartozik 5-nél több kép?
+
+Noha az alkalmazás EF Core-t használ, adatbázis-ismereti oldalról ezek mögött SQL aggregációk, JOIN-ok és rendezések vannak. Vizsgán ezt úgy érdemes megfogalmazni, hogy:
+- EF Core LINQ kifejezésekkel építem a lekérdezést,
+- a provider ebből SQL-t generál,
+- így egyszerre kapok típusbiztonságot és jó teljesítményt.
+
+Példa LINQ gondolkodás:
+- GroupBy kategóriára,
+- Count/Average aggregáció,
+- OrderByDescending mennyiségre.
+
+Adattisztasági szabály:
+A rendszer képtárolásnál külön kezeli a fájlútvonalat (adatbázis) és a valódi fájlt (fájlrendszer). Ez felvet szinkronizációs kérdéseket, ezért admin háttérkarbantartó feladatként később érdemes „árva fájl” ellenőrzést építeni.
+
+Ez a fejezet a vizsgán azt bizonyítja, hogy a projekt mögött nem csak „kódfuttatás”, hanem adatbázis-szintű gondolkodás is áll.
+
+====================================================
+OLDAL 32 - BIZTONSÁGI HARDENING TERV
+====================================================
+
+A jelenlegi rendszer alapvetően biztonságos, de éles üzemhez további erősítések javasoltak.
+
+1. Jelszópolicy szigorítás
+Fejlesztői környezetben alacsonyabb küszöb kényelmes, de élesben:
+- minimum 10-12 karakter,
+- kis/nagybetű + szám + speciális karakter,
+- ismétlődő jelszavak tiltása.
+
+2. Account lockout
+Bevezethető:
+- 5 sikertelen próbálkozás után ideiglenes tiltás,
+- lockout időszak fokozatos növelése.
+
+3. Kétfaktoros hitelesítés
+Identity támogatja, így bevezethető email vagy authenticator app alapú 2FA.
+
+4. Képfeltöltés védelme
+- fájlméret limit (pl. max 5 MB/kép),
+- engedélyezett MIME lista,
+- kiterjesztés whitelist,
+- opcionális vírusellenőrzés.
+
+5. Content Security Policy
+HTTP security headerek:
+- CSP,
+- X-Content-Type-Options,
+- Referrer-Policy.
+
+6. Audit log
+Kritikus műveletek naplózása:
+- role módosítás,
+- jelszócsere,
+- hirdetés törlés,
+- admin művelet.
+
+7. Titkok kezelése
+Connection string és kulcsok:
+- ne kerüljenek verziókövetésbe,
+- productionban environment secret store-ból jöjjenek.
+
+8. Szerveroldali rate limiting
+Az ASP.NET Core támogatja; belépés és keresés endpointokon ajánlott.
+
+9. GDPR hardening
+- account törlés workflow,
+- személyes adatexport endpoint,
+- adatkezelési log.
+
+Ezek a hardening lépések vizsgán jól használhatók „jövőbeli fejlesztési roadmap” bizonyítására.
+
+====================================================
+OLDAL 33 - DEVOPS, CI/CD, RELEASE STRATÉGIA
+====================================================
+
+Egy vizsgamunka értékét növeli, ha a fejlesztési folyamat is átgondolt.
+
+1. Verziókezelés
+Git repository szerkezet:
+- feature branch alapú munka,
+- pull request review,
+- release branch.
+
+2. CI pipeline javaslat
+Minden push-nál:
+1. dotnet restore
+2. dotnet build
+3. dotnet test
+4. artifact csomagolás
+
+3. Release pipeline
+Staging és production külön:
+- stagingre automatikus deploy,
+- productionra jóváhagyott release.
+
+4. Adatbázis release
+Migration script kontrollált futtatása release során.
+
+5. Monitorozás
+Application Insights vagy más APM:
+- hibaarány,
+- response idő,
+- user flow metrikák.
+
+6. Rollback stratégia
+Ha release hiba:
+- előző build visszaállítás,
+- adatbázis backupból visszatöltés.
+
+7. Konfigurációs profilok
+- Development
+- Staging
+- Production
+mindegyik saját appsettings és titokkezelés.
+
+8. Konténerizáció
+Később Dockerfile készíthető:
+- app konténer,
+- külön db konténer (lokális fejlesztéshez).
+
+Ez a fejezet demonstrálja, hogy a fejlesztő nem csak kódot ír, hanem üzemeltethető rendszert tervez.
+
+====================================================
+OLDAL 34 - RÉSZLETES VIZSGA DEMÓ FORGATÓKÖNYV (LÉPÉSRŐL LÉPÉSRE)
+====================================================
+
+0:00-1:00
+Projekt cél és technológia rövid bemutatása.
+
+1:00-3:00
+Program.cs áttekintés:
+- szolgáltatásregisztráció,
+- middleware,
+- seed folyamat.
+
+3:00-5:00
+Adatmodell bemutatás:
+- Property,
+- PropertyImage,
+- ApplicationUser + UserType,
+- relációk.
+
+5:00-7:00
+Regisztráció és login élő bemutatása.
+
+7:00-10:00
+Új hirdetés létrehozása:
+- adatok kitöltése,
+- több kép feltöltése,
+- listában megjelenés.
+
+10:00-12:00
+Saját hirdetés szerkesztése:
+- mezőmódosítás,
+- képtörlés,
+- jogosultság bizonyítása.
+
+12:00-14:00
+Beállítások oldal:
+- email módosítás,
+- user type váltás,
+- jelszócsere.
+
+14:00-16:00
+Admin felület:
+- felhasználók listája role-okkal,
+- hirdetések listája.
+
+16:00-18:00
+Biztonsági és validációs elemek:
+- antiforgery,
+- authorize,
+- tulajdonosi ellenőrzés.
+
+18:00-20:00
+Összegzés és jövőbeli fejlesztési tervek.
+
+Miért működik ez jól?
+- időkeretbe fér,
+- látványos élő működés,
+- technikailag mély, de érthető.
+
+====================================================
+OLDAL 35 - ZÁRÓ ÖSSZEGZÉS BŐVÍTETT VÁLTOZAT
+====================================================
+
+A househub rendszer egy komplex, mégis áttekinthető webes alkalmazás, amely gyakorlati példán keresztül mutatja be a full-stack webfejlesztés alapvető és haladó elemeit.
+
+A projekt legfontosabb szakmai értékei:
+1. Modern technológiai alap:
+.NET 8, ASP.NET Core MVC, EF Core, Identity, MariaDB.
+
+2. Üzletileg értelmezhető domain:
+Ingatlan hirdetések valós adatszerkezettel és szereplőkkel.
+
+3. Jól elkülönített rétegek:
+Controller-Model-View struktúra.
+
+4. Biztonságtudatos működés:
+Hitelesítés, jogosultság, tulajdonosi védelem, tokenes POST.
+
+5. Továbbfejleszthetőség:
+Roadmap és technikai bővítési lehetőségek egyértelműek.
+
+6. Oktatási érték:
+Jól demonstrálható vizsgán, mérhető és érthető.
+
+Egy vizsgamunka akkor erős, ha:
+- nem csak „lefut”,
+- hanem indokolható döntésekből épül,
+- és világos jövőképe van.
+
+A househub ebben jó példát mutat:
+- van architektúra,
+- van üzleti logika,
+- van biztonsági gondolkodás,
+- van felhasználói élmény.
+
+Záró mondat:
+A projekt alkalmas arra, hogy a vizsgán szakmailag meggyőző, gyakorlatias és strukturált bemutatást adjon, miközben valós fejlesztői kompetenciát demonstrál.

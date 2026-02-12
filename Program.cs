@@ -1,110 +1,88 @@
-using househub.Data;
+ï»¿using househub.Data;
 using househub.Models;
+using househub.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
-
 var builder = WebApplication.CreateBuilder(args);
-var test = typeof(ApplicationDbContext); // debuggolási segédlet
 
-// Betöltjük a connection stringet az appsettings.json-ból
+// Betoltjuk a connection stringet az appsettings.json-bol.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("A 'DefaultConnection' connection string hiányzik az appsettings.json-ból.");
+    ?? throw new InvalidOperationException("A 'DefaultConnection' connection string hianyzik az appsettings.json-bol.");
 
-// Itt állítjuk be az EF Core-t, hogy MariaDB-t használjon
+// Itt allitjuk be az EF Core-t, hogy MariaDB-t hasznaljon.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Fontos: Pomelo MariaDB provider konfigurálása
-    // ServerVersion.AutoDetect -> automatikusan felismeri a MariaDB verzióját
+    // ServerVersion.AutoDetect automatikusan felismeri a MariaDB verziot.
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
-// Identity beállítása a saját ApplicationUser osztályunkkal
+// SMTP email kuldes beallitasa (Identity email-ekhez).
+builder.Services.Configure<SmtpEmailSettings>(
+    builder.Configuration.GetSection(SmtpEmailSettings.SectionName));
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
+// Identity beallitasa a sajat ApplicationUser osztallyal.
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    // Jelszókövetelmények (egyszerûsítve, hogy fejlesztéshez ne legyen túl szigorú)
+    // Jelszokovetelmenyek (fejlesztoi egyszerusites).
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
-})
-    .AddRoles<IdentityRole>() // Szerepkörök támogatása (admin, stb.) 
-    .AddEntityFrameworkStores<ApplicationDbContext>(); // Identity adatok is MariaDB-ben lesznek
 
-// MVC támogatás (Controller + View)
+    // Regisztracio utan kotelezo email megerosites.
+    options.SignIn.RequireConfirmedAccount = true;
+})
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// MVC + Razor Pages.
 builder.Services.AddControllersWithViews();
-// Identity UI (Login/Register) Razor Pages endpointjeihez szksges
 builder.Services.AddRazorPages();
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
-// ADATBÁZIS LÉTREHOZÁSA ÉS KEZDÕ ADATOK FELTÖLTÉSE ALKALMAZÁS INDULÁSKOR
+// Adatbazis letrehozasa es kezdo adatok feltoltese indulasnal.
 using (var scope = app.Services.CreateScope())
 {
-    // A scope-ból ki tudjuk kérni a szükséges szolgáltatásokat
     var services = scope.ServiceProvider;
 
     try
     {
-        // 1) Lekérjük az adatbázis kontextust (ApplicationDbContext)
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
-
-        // ------------------------------
-        // EnsureCreated:
-        // ------------------------------
-        // Ez a metódus ellenõrzi, hogy léteznek-e az adatbázis objektumok (adatbázis + táblák).
-        // Ha még nem léteznek, automatikusan létrehozza õket EF Core alapján.
-        // FONTOS: Ez NEM migráció, hanem egy egyszerû "ha nincs, hozd létre" mechanizmus.
-        // Nekünk most ez pont elég, és megkerüljük vele az EF Tools hibáját.
         dbContext.Database.EnsureCreated();
 
-        // 2) Lekérjük a szerepkör- és felhasználókezelõ szolgáltatásokat Identity-hez
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // 3) Lefuttatjuk az általunk írt adatbázis seeder metódust,
-        //    ami létrehozza a szerepköröket (Admin, Ingatlanos, Tulajdonos)
-        //    és egy alap admin felhasználót (admin@househub.local / Admin123)
         DbSeeder.SeedAsync(roleManager, userManager).GetAwaiter().GetResult();
     }
     catch (Exception ex)
     {
-        // Ha itt hiba történik, élesben érdemes lenne naplózni (loggerrel),
-        // most egyszerûség kedvéért nem csinálunk semmit.
-        // Példa:
-        // var logger = services.GetRequiredService<ILogger<Program>>();
-        // logger.LogError(ex, "Hiba történt az adatbázis inicializálása közben.");
+        app.Logger.LogError(ex, "Hiba tortent az adatbazis inicializalasa kozben.");
     }
 }
 
-// Fejlesztési és éles környezet beállítások
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// HTTPS kényszerítés
 app.UseHttpsRedirection();
-
-// Statikus fájlok (pl. CSS, JS, képek)
 app.UseStaticFiles();
-
-// Routing middleware
 app.UseRouting();
-
-// Authentication & Authorization middleware-ek
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Alap route beállítása (HomeController / Index)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Identity area (Register, Login, stb.)
 app.MapRazorPages();
 
 app.Run();

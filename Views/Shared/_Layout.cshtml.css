@@ -1,37 +1,45 @@
-﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+﻿/* Layouthoz tartozo stilusok */
 
 a.navbar-brand {
   white-space: normal;
   text-align: center;
   word-break: break-all;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
-a {
-  color: #0077cc;
+.navbar {
+  background: linear-gradient(120deg, rgba(255,255,255,0.96), rgba(239,245,255,0.96));
 }
 
-.btn-primary {
+.navbar .nav-link {
+  border-radius: 999px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+  background-color: rgba(47, 109, 246, 0.12);
+  color: #1f52c6 !important;
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
   color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
-}
-
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+  background: linear-gradient(135deg, #2f6df6, #588dff);
+  border: 0;
+  border-radius: 999px;
 }
 
 .border-top {
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid rgba(47, 109, 246, 0.15) !important;
 }
+
 .border-bottom {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid rgba(47, 109, 246, 0.15) !important;
 }
 
 .box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+  box-shadow: 0 10px 24px rgba(29, 52, 97, 0.12);
 }
 
 button.accept-policy {

@@ -1,0 +1,82 @@
+@model househub.Models.AccountSettingsViewModel
+
+@{
+    ViewData["Title"] = "Beállítások";
+}
+
+@* Főcím és rövid leírás a felhasználónak *@
+<h1>Beállítások</h1>
+<p>Itt tudod kezelni a fiókod adatait és a jelszavadat.</p>
+
+@* Sikeres mentés után TempData üzenet jelenik meg *@
+@if (TempData["SettingsMessage"] is string message && !string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-success" role="alert">
+        @message
+    </div>
+}
+
+@* Egyetlen űrlapban kezeljük a profiladatokat és a jelszócserét *@
+<form asp-action="Index" method="post" class="mt-4">
+    @Html.AntiForgeryToken()
+
+    @* Összesített validációs hibák helye *@
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    @* Email mező *@
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    @* Telefonszám mező *@
+    <div class="mb-3">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+
+    @* UserType kiválasztása (csak két engedélyezett opcióval) *@
+    <div class="mb-3">
+        <label asp-for="UserType" class="form-label"></label>
+        <select asp-for="UserType" class="form-select">
+            <option value="@((int)househub.Models.UserType.Tulajdonos)">Tulajdonos</option>
+            <option value="@((int)househub.Models.UserType.Ingatlanos)">Ingatlanos</option>
+        </select>
+        <span asp-validation-for="UserType" class="text-danger"></span>
+    </div>
+
+    <hr />
+    <h4>Jelszócsere (opcionális)</h4>
+    <p class="text-muted">Ha nem szeretnél jelszót cserélni, hagyd üresen a jelszó mezőket.</p>
+
+    @* Jelenlegi jelszó *@
+    <div class="mb-3">
+        <label asp-for="CurrentPassword" class="form-label"></label>
+        <input asp-for="CurrentPassword" class="form-control" />
+        <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+    </div>
+
+    @* Új jelszó *@
+    <div class="mb-3">
+        <label asp-for="NewPassword" class="form-label"></label>
+        <input asp-for="NewPassword" class="form-control" />
+        <span asp-validation-for="NewPassword" class="text-danger"></span>
+    </div>
+
+    @* Új jelszó megerősítése *@
+    <div class="mb-3">
+        <label asp-for="ConfirmNewPassword" class="form-label"></label>
+        <input asp-for="ConfirmNewPassword" class="form-control" />
+        <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+    </div>
+
+    @* Mentés gomb *@
+    <button type="submit" class="btn btn-primary">Mentés</button>
+</form>
+
+@section Scripts {
+    @* Kliens oldali validációhoz szükséges script partial *@
+    <partial name="_ValidationScriptsPartial" />
+}
