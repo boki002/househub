@@ -5,18 +5,18 @@
     ViewData["Title"] = "Ingatlanok";
 }
 
-<h4 class="mb-3 fw-bold fst-italic text-secondary">Ingatlanok keresése</h4>
+<h2>Ingatlanok keresése</h2>
 
-<form method="get" class="row g-3 mb-4 p-4 bg-white shadow-sm rounded">
+<form method="get" class="row g-3 mb-4">
 
     <div class="col-md-4">
-        <label class="form-label fw-bold fst-italic text-primary">Kulcsszó</label>
+        <label class="form-label">Kulcsszó</label>
         <input name="keyword" class="form-control" placeholder="pl. kert, felújított, panoráma" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Kategória</label>
-        <select name="category" class="form-select shadow-sm">
+        <label class="form-label">Kategória</label>
+        <select name="category" class="form-select">
             <option value="">(Mind)</option>
             <option>lakás</option>
             <option>ház</option>
@@ -26,10 +26,7 @@
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold">
-        <span class="text-dark">Eladó</span> /
-        <span class="text-danger">Kiadó</span>
-        </label>
+        <label class="form-label">Eladó / Kiadó</label>
         <select name="listingType" class="form-select">
             <option value="">(Mind)</option>
             <option>eladó</option>
@@ -38,32 +35,32 @@
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Szobaszám</label>
+        <label class="form-label">Szobaszám</label>
         <input type="number" name="rooms" class="form-control" min="0" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Min. alapterület</label>
+        <label class="form-label">Min. alapterület</label>
         <input type="number" name="minArea" class="form-control" min="0" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Max. alapterület</label>
+        <label class="form-label">Max. alapterület</label>
         <input type="number" name="maxArea" class="form-control" min="0" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Min. ár (Ft)</label>
+        <label class="form-label">Min. ár (Ft)</label>
         <input type="number" name="minPrice" class="form-control" min="0" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Max. ár (Ft)</label>
+        <label class="form-label">Max. ár (Ft)</label>
         <input type="number" name="maxPrice" class="form-control" min="0" />
     </div>
 
     <div class="col-md-2">
-        <label class="form-label fw-bold fst-italic text-primary">Rendezés</label>
+        <label class="form-label">Rendezés</label>
         <select name="sort" class="form-select">
             <option value="">Legújabb</option>
             <option value="price_asc">Ár (növekvő)</option>
@@ -74,8 +71,8 @@
     </div>
 
     <div class="col-md-12">
-        <button class="btn bg-light text-dark shadow-sm rounded-pill px-4 py-2 fw-semibold">Keresés</button>
-        <a href="/Property" class="btn bg-light text-dark shadow-sm rounded-pill px-4 py-2 fw-semibold">Alaphelyzet</a>
+        <button class="btn btn-primary">Keresés</button>
+        <a href="/Property" class="btn btn-secondary">Alaphelyzet</a>
     </div>
 
 </form>
@@ -88,7 +85,7 @@
 
 
 
-<h1 class="mb-4 fw-bold fst-italic text-secondary">Ingatlanok</h1>
+<h1>Ingatlanok</h1>
 
 <!--
     Egyszerű kereső űrlap az ingatlanok szűrésére.
@@ -100,7 +97,7 @@
     <div class="row">
         <!-- Keresőszó mező: címre és leírásra keres -->
         <div class="col-md-3">
-            <label for="keresoszo" class="form-label fw-bold fst-italic text-primary">Keresés (cím / leírás)</label>
+            <label for="keresoszo" class="form-label">Keresés (cím / leírás)</label>
             <input type="text"
                    id="keresoszo"
                    name="keresoszo"
@@ -110,7 +107,7 @@
 
         <!-- Kategória legördülő (enum PropertyCategory) -->
         <div class="col-md-2">
-            <label for="kategoria" class="form-label fw-bold fst-italic text-primary">Kategória</label>
+            <label for="kategoria" class="form-label">Kategória</label>
             <select id="kategoria"
                     name="kategoria"
                     class="form-select"
@@ -121,7 +118,7 @@
 
         <!-- Minimális ár (Ft) -->
         <div class="col-md-2">
-            <label for="minAr" class="form-label fw-bold fst-italic text-primary">Min. ár (Ft)</label>
+            <label for="minAr" class="form-label">Min. ár (Ft)</label>
             <input type="number"
                    id="minAr"
                    name="minAr"
@@ -131,7 +128,7 @@
 
         <!-- Maximális ár (Ft) -->
         <div class="col-md-2">
-            <label for="maxAr" class="form-label fw-bold fst-italic text-primary">Max. ár (Ft)</label>
+            <label for="maxAr" class="form-label">Max. ár (Ft)</label>
             <input type="number"
                    id="maxAr"
                    name="maxAr"
@@ -141,15 +138,15 @@
 
         <!-- Keresés gomb -->
         <div class="col-md-3 d-flex align-items-end">
-            <button type="submit" class="btn bg-light text-dark shadow-sm rounded-pill px-4 py-2 fw-semibold">Keresés</button>
-            <a asp-action="Index" class="btn bg-light text-dark shadow-sm rounded-pill px-4 py-2 fw-semibold">Szűrés törlése</a>
+            <button type="submit" class="btn btn-primary me-2">Keresés</button>
+            <a asp-action="Index" class="btn btn-secondary">Szűrés törlése</a>
         </div>
     </div>
 </form>
 
 <!-- Új hirdetés létrehozása gomb (csak bejelentkezetteknek lesz engedélyezve a szerver oldalon) -->
 <p>
-    <a asp-action="Create" class="btn bg-light text-dark shadow-sm rounded-pill px-4 py-2 fw-semibold">Új ingatlan hirdetés feladása</a>
+    <a asp-action="Create" class="btn btn-success">Új ingatlan hirdetés feladása</a>
 </p>
 
 <!--
