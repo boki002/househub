@@ -21,7 +21,15 @@ body {
   margin-bottom: 60px;
 }
 
-/* Kattintható képek – kéz kurzor */
+.btn {
+  border-radius: 999px;
+}
+
+.btn-sm {
+  border-radius: 999px;
+}
+
+/* Kattinthato kepek - kez kurzor */
 .img-clickable {
     cursor: pointer;
 }
