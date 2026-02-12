@@ -14,8 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Itt allitjuk be az EF Core-t, hogy MariaDB-t hasznaljon.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // ServerVersion.AutoDetect automatikusan felismeri a MariaDB verziot.
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    // Fix szerververzio: ne probaljon mar indulaskor kapcsolodni AutoDetect miatt.
+    options.UseMySql(connectionString, new MariaDbServerVersion(new Version(10, 11, 0)));
 });
 
 // SMTP email kuldes beallitasa (Identity email-ekhez).
